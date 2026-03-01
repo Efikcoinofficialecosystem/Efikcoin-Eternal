@@ -26,7 +26,7 @@ Official repository for EfikCoin Eternal (ECE) – a decentralized financial eco
 ## 🔗 Live Website
 
 The official Web3 interface is hosted on GitHub Pages:  
-[https://efikcoinofficialecosystem.github.io/Efikcoin.ecosystem/](https://efikcoinofficialecosystem.github.io/Efikcoin.ecosystem/)
+[https://efikcoinofficialecosystem.github.io/Efikcoin-Eternal/]
 
 ## 🖼️ Logo & Branding [1772019882787.png]
 

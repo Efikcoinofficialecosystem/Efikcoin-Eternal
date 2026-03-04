@@ -45,3 +45,4 @@ Community contributions and feedback are welcome. Feel free to open issues or su
 ---
 
 Built with ❤️ for humanity. Coin is life.
+https://gist.github.com/Efikcoinofficialecosystem/94f82350dbe8a0affc6bb478848f5bda

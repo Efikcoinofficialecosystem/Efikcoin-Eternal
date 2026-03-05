@@ -1,1356 +1,394 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>EfikCoin Eternal (ECE) — Blockchain Tools</title>
-<script src="https://cdn.jsdelivr.net/npm/web3@4.3.0/dist/web3.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-  :root {
-    --gold:#FFD700; --gold2:#FFA500; --deep:#0a0a1a;
-    --card:#111130; --card2:#181840; --border:#2a2a5a;
-    --green:#00ff88; --red:#ff4466; --blue:#4488ff;
-    --purple:#9b59b6; --teal:#00bcd4;
-    --text:#e0e0ff; --muted:#8888aa;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif;}
-  body{background:var(--deep);color:var(--text);min-height:100vh;}
-
-  /* HEADER */
-  header{
-    background:linear-gradient(135deg,#0d0d2b 0%,#1a1a40 50%,#0d0d2b 100%);
-    border-bottom:2px solid var(--gold);
-    padding:0 20px;position:sticky;top:0;z-index:999;
-    box-shadow:0 0 30px rgba(255,215,0,0.15);
-  }
-  .header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:72px;}
-  .logo{display:flex;align-items:center;gap:12px;}
-  .logo-coin{
-    width:48px;height:48px;border-radius:50%;
-    background:radial-gradient(circle,#FFD700,#FFA500);
-    display:flex;align-items:center;justify-content:center;
-    font-size:24px;font-weight:900;color:#0a0a1a;
-    box-shadow:0 0 20px rgba(255,215,0,0.5);
-    animation:pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(255,215,0,0.5);}50%{box-shadow:0 0 40px rgba(255,215,0,0.9);}}
-  .logo-text{font-size:1.4rem;font-weight:800;background:linear-gradient(90deg,var(--gold),#fff,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-  .logo-sub{font-size:0.7rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;}
-  nav{display:flex;gap:4px;}
-  nav button{
-    background:none;border:none;color:var(--muted);
-    padding:8px 14px;border-radius:8px;cursor:pointer;
-    font-size:0.85rem;font-weight:600;transition:all .2s;
-  }
-  nav button:hover,nav button.active{background:rgba(255,215,0,0.1);color:var(--gold);}
-  .connect-btn{
-    background:linear-gradient(135deg,var(--gold),var(--gold2));
-    border:none;color:#0a0a1a;padding:10px 20px;
-    border-radius:10px;cursor:pointer;font-weight:700;
-    font-size:0.9rem;transition:all .2s;
-  }
-  .connect-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,215,0,0.4);}
-  .wallet-addr{font-size:0.75rem;color:var(--gold);font-family:monospace;}
-
-  /* LAYOUT */
-  main{max-width:1400px;margin:0 auto;padding:24px 20px;}
-  .section{display:none;}
-  .section.active{display:block;}
-
-  /* TICKER BAR */
-  .ticker-bar{
-    background:var(--card);border:1px solid var(--border);
-    border-radius:12px;padding:12px 20px;margin-bottom:24px;
-    display:flex;gap:32px;overflow-x:auto;
-    box-shadow:0 0 20px rgba(255,215,0,0.05);
-  }
-  .ticker-item{display:flex;flex-direction:column;min-width:120px;}
-  .ticker-label{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
-  .ticker-value{font-size:1.1rem;font-weight:700;color:var(--gold);}
-  .ticker-change{font-size:0.75rem;font-weight:600;}
-  .up{color:var(--green);}
-  .down{color:var(--red);}
-
-  /* CARDS GRID */
-  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
-  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
-  .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
-  @media(max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr);}}
-  @media(max-width:700px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr;}}
-
-  .card{
-    background:var(--card);border:1px solid var(--border);
-    border-radius:16px;padding:20px;
-    transition:all .3s;
-  }
-  .card:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(255,215,0,0.1);}
-  .card-label{font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
-  .card-value{font-size:1.8rem;font-weight:800;color:var(--gold);}
-  .card-sub{font-size:0.8rem;color:var(--muted);margin-top:4px;}
-  .card-icon{font-size:2rem;margin-bottom:12px;}
-
-  .card-wide{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px;}
-  .card-title{font-size:1.1rem;font-weight:700;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-
-  /* CHART */
-  .chart-container{position:relative;height:300px;}
-
-  /* TABLE */
-  table{width:100%;border-collapse:collapse;font-size:0.85rem;}
-  th{padding:12px;text-align:left;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;}
-  td{padding:12px;border-bottom:1px solid rgba(42,42,90,0.5);}
-  tr:hover td{background:rgba(255,215,0,0.03);}
-  .hash{font-family:monospace;color:var(--blue);font-size:0.8rem;}
-  .badge{padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;}
-  .badge-green{background:rgba(0,255,136,0.15);color:var(--green);}
-  .badge-red{background:rgba(255,68,102,0.15);color:var(--red);}
-  .badge-gold{background:rgba(255,215,0,0.15);color:var(--gold);}
-  .badge-blue{background:rgba(68,136,255,0.15);color:var(--blue);}
-
-  /* FORMS */
-  .form-group{margin-bottom:16px;}
-  label{display:block;font-size:0.8rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;}
-  input,select,textarea{
-    width:100%;background:var(--deep);border:1px solid var(--border);
-    color:var(--text);padding:12px 16px;border-radius:10px;
-    font-size:0.9rem;transition:all .2s;outline:none;
-  }
-  input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 10px rgba(255,215,0,0.1);}
-  textarea{resize:vertical;min-height:100px;}
-
-  .btn{
-    padding:12px 24px;border-radius:10px;border:none;
-    cursor:pointer;font-weight:700;font-size:0.9rem;
-    transition:all .2s;
-  }
-  .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a1a;}
-  .btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,215,0,0.4);}
-  .btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold);}
-  .btn-outline:hover{background:rgba(255,215,0,0.1);}
-  .btn-danger{background:linear-gradient(135deg,#ff4466,#cc2244);color:#fff;}
-  .btn-success{background:linear-gradient(135deg,var(--green),#00cc66);color:#0a0a1a;}
-  .btn-sm{padding:8px 16px;font-size:0.8rem;}
-  .btn-row{display:flex;gap:12px;flex-wrap:wrap;}
-
-  /* STAKING */
-  .staking-pool{
-    background:linear-gradient(135deg,rgba(255,215,0,0.05),rgba(255,165,0,0.05));
-    border:1px solid rgba(255,215,0,0.3);border-radius:16px;padding:24px;
-  }
-  .staking-apr{font-size:3rem;font-weight:900;color:var(--gold);text-align:center;margin:16px 0;}
-  .staking-apr span{font-size:1.2rem;color:var(--muted);}
-  .progress-bar{background:var(--deep);border-radius:20px;height:12px;overflow:hidden;margin:8px 0;}
-  .progress-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width 1s;}
-
-  /* AIRDROP */
-  .airdrop-zone{
-    border:2px dashed var(--border);border-radius:16px;padding:40px;
-    text-align:center;transition:all .3s;cursor:pointer;
-  }
-  .airdrop-zone:hover,.airdrop-zone.drag{border-color:var(--gold);background:rgba(255,215,0,0.03);}
-  .airdrop-zone .icon{font-size:3rem;margin-bottom:16px;}
-
-  /* CONTRACT */
-  .function-card{
-    background:var(--card2);border:1px solid var(--border);
-    border-radius:12px;margin-bottom:12px;overflow:hidden;
-  }
-  .function-header{
-    padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
-    cursor:pointer;transition:background .2s;
-  }
-  .function-header:hover{background:rgba(255,215,0,0.05);}
-  .function-name{font-weight:700;font-family:monospace;color:var(--blue);}
-  .function-type{font-size:0.7rem;padding:2px 8px;border-radius:4px;}
-  .fn-read{background:rgba(0,188,212,0.15);color:var(--teal);}
-  .fn-write{background:rgba(255,165,0,0.15);color:var(--gold);}
-  .function-body{padding:0 20px 20px;display:none;}
-  .function-body.open{display:block;}
-  .output-box{background:var(--deep);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:0.85rem;margin-top:12px;color:var(--green);min-height:40px;}
-
-  /* ALERTS */
-  .alert{padding:14px 20px;border-radius:10px;margin-bottom:16px;font-size:0.9rem;}
-  .alert-info{background:rgba(68,136,255,0.1);border:1px solid rgba(68,136,255,0.3);color:var(--blue);}
-  .alert-warn{background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);color:var(--gold2);}
-  .alert-success{background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);color:var(--green);}
-  .alert-danger{background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.3);color:var(--red);}
-
-  /* ADDRESS COPY */
-  .address-box{
-    background:var(--deep);border:1px solid var(--border);border-radius:10px;
-    padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
-    font-family:monospace;font-size:0.85rem;
-  }
-  .copy-btn{background:none;border:none;color:var(--gold);cursor:pointer;font-size:1rem;}
-
-  /* SPINNER */
-  .spinner{width:24px;height:24px;border:3px solid var(--border);border-top:3px solid var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-
-  /* LIVE DOT */
-  .live{display:inline-flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--green);}
-  .live-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:blink 1.5s ease-in-out infinite;}
-  @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar{width:6px;height:6px;}
-  ::-webkit-scrollbar-track{background:var(--deep);}
-  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-
-  /* LOADING OVERLAY */
-  #loading-overlay{
-    position:fixed;inset:0;background:var(--deep);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    z-index:9999;transition:opacity .5s;
-  }
-  .loading-coin{
-    width:80px;height:80px;border-radius:50%;
-    background:radial-gradient(circle,#FFD700,#FFA500);
-    display:flex;align-items:center;justify-content:center;
-    font-size:40px;font-weight:900;color:#0a0a1a;
-    margin-bottom:24px;animation:pulse 1s ease-in-out infinite;
-  }
-  .loading-text{color:var(--gold);font-size:1.2rem;font-weight:700;margin-bottom:12px;}
-  .loading-bar{width:300px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
-  .loading-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));animation:load 2s ease-in-out forwards;}
-  @keyframes load{from{width:0}to{width:100%}}
-
-  /* SECTION TITLES */
-  .section-title{font-size:1.6rem;font-weight:800;margin-bottom:4px;background:linear-gradient(90deg,var(--gold),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-  .section-desc{font-size:0.9rem;color:var(--muted);margin-bottom:24px;}
-
-  /* RESPONSIVE */
-  @media(max-width:768px){
-    nav{display:none;}
-    .ticker-bar{gap:20px;}
-    .card-value{font-size:1.4rem;}
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EfikCoin Eternal – Admin & Help</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <!-- Web3Modal for multi-wallet support -->
+    <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+    <style>
+        body { background: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(20,20,20,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,215,0,0.15); border-radius: 1.5rem; }
+        .btn { transition: all 0.2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(255,215,0,0.3); }
+        .admin-only { display: none; }
+        .show-admin { display: block; }
+    </style>
 </head>
-  <!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/YOUR_PROPERTY_ID/default';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
-<body>
+<body class="p-4 md:p-6">
+    <div class="max-w-4xl mx-auto space-y-6">
 
-<!-- LOADING -->
-<div id="loading-overlay">
-  <div class="loading-coin">Ε</div>
-  <div class="loading-text">Loading EfikCoin Eternal Tools...</div>
-  <div class="loading-bar"><div class="loading-fill"></div></div>
-</div>
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-clip-text text-transparent">
+                EfikCoin Eternal
+            </h1>
+            <p class="text-gray-400 mt-2 text-lg">ECE · Decentralized Finance for Humanity</p>
+            <p class="text-sm text-gray-500 break-all mt-2 font-mono bg-gray-800/50 p-2 rounded-xl inline-block">
+                Contract: 0x9F8C29E496ECB6C39c221458f211234DfCB233E0
+            </p>
+        </div>
 
-<!-- HEADER -->
-<header>
-  <div class="header-inner">
-    <div class="logo">
-      <div class="logo-coin">Ε</div>
-      <div>
-        <div class="logo-text">EfikCoin Eternal</div>
-        <div class="logo-sub">ECE · BSC Blockchain Tools</div>
-      </div>
-    </div>
-    <nav>
-      <button class="active" onclick="showSection('dashboard')">📊 Dashboard</button>
-      <button onclick="showSection('transactions')">📋 Transactions</button>
-      <button onclick="showSection('staking')">🔒 Staking</button>
-      <button onclick="showSection('airdrop')">🪂 Airdrop</button>
-      <button onclick="showSection('contract')">📜 Contract</button>
-      <button onclick="showSection('tools')">🛠️ Tools</button>
-    </nav>
-    <div>
-      <div id="wallet-display" style="display:none;text-align:right;">
-        <div class="wallet-addr" id="wallet-addr-text"></div>
-        <div style="font-size:0.7rem;color:var(--green);">● Connected to BSC</div>
-      </div>
-      <button class="connect-btn" id="connect-btn" onclick="connectWallet()">🔗 Connect Wallet</button>
-    </div>
-  </div>
-</header>
+        <!-- Wallet Connection Panel -->
+        <div class="glass-card p-5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div id="connectionIndicator" class="w-3 h-3 rounded-full bg-red-500"></div>
+                <span id="connectionStatus" class="font-medium text-gray-300">Not connected</span>
+                <span id="networkStatus" class="text-sm text-gray-500"></span>
+            </div>
+            <div class="flex gap-3">
+                <button id="connectBtn" class="btn bg-amber-500 hover:bg-amber-600 text-black px-6 py-2.5 rounded-full text-sm font-bold shadow-lg">
+                    🔌 Connect Wallet
+                </button>
+                <button id="switchNetworkBtn" class="btn bg-gray-700 hover:bg-gray-600 text-white px-5 py-2.5 rounded-full text-sm shadow-lg hidden">
+                    🔄 Switch to BSC
+                </button>
+            </div>
+        </div>
 
-<main>
+        <!-- User Info (visible when connected) -->
+        <div id="userInfo" class="glass-card p-5 hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <p class="text-gray-400 text-sm"><span class="font-mono">👤 Connected Address</span></p>
+                    <p id="userAddress" class="font-mono text-sm break-all bg-black/30 p-2 rounded-lg"></p>
+                </div>
+                <div class="text-right">
+                    <p class="text-gray-400 text-sm">💰 Your ECE Balance</p>
+                    <p id="userBalance" class="text-2xl font-bold text-amber-400">0</p>
+                </div>
+                <button id="refreshBalance" class="btn bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-full text-sm">
+                    🔄 Refresh
+                </button>
+            </div>
+        </div>
 
-<!-- ══════════════════ DASHBOARD ══════════════════ -->
-<div id="section-dashboard" class="section active">
-  <div class="ticker-bar" id="ticker-bar">
-    <div class="ticker-item"><div class="ticker-label">ECE Price</div><div class="ticker-value" id="t-price">$5,068</div><div class="ticker-change up" id="t-change">▲ 63.4%</div></div>
-    <div class="ticker-item"><div class="ticker-label">Market Cap</div><div class="ticker-value">$50.7T</div><div class="ticker-change" style="color:var(--muted);">ECE Total</div></div>
-    <div class="ticker-item"><div class="ticker-label">24h Volume</div><div class="ticker-value" id="t-vol">$5.34</div><div class="ticker-change" style="color:var(--muted);">ECE/WBNB</div></div>
-    <div class="ticker-item"><div class="ticker-label">Liquidity</div><div class="ticker-value">$15.30</div><div class="ticker-change" style="color:var(--muted);">Pool Depth</div></div>
-    <div class="ticker-item"><div class="ticker-label">BNB Price</div><div class="ticker-value" id="t-bnb">$628</div><div class="ticker-change" style="color:var(--muted);">Live</div></div>
-    <div class="ticker-item"><div class="ticker-label">Tax</div><div class="ticker-value" style="color:var(--green);">0%</div><div class="ticker-change" style="color:var(--muted);">Buy / Sell</div></div>
-    <div class="ticker-item"><div class="ticker-label">Network</div><div class="ticker-value" style="font-size:1rem;color:var(--gold2);">BSC</div><div class="ticker-change up">● Live</div></div>
-  </div>
+        <!-- Admin Dashboard (only visible to contract owner) -->
+        <div id="adminDashboard" class="glass-card p-5 border-2 border-amber-500/50 hidden">
+            <h2 class="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+                <span class="text-3xl">👑</span> Founder's Control Panel
+            </h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <!-- Token Stats -->
+                <div class="bg-black/30 p-4 rounded-xl">
+                    <h3 class="font-semibold text-amber-300 mb-2">📊 Live Stats</h3>
+                    <p>Total Supply: <span id="totalSupply" class="text-white font-mono">-</span></p>
+                    <p>Total Staked: <span id="totalStaked" class="text-white font-mono">-</span></p>
+                    <p>Your Balance: <span id="ownerBalance" class="text-white font-mono">-</span></p>
+                    <p>Holders: <span id="holderCount" class="text-white font-mono">-</span></p>
+                </div>
 
-  <div class="grid-4">
-    <div class="card">
-      <div class="card-icon">💰</div>
-      <div class="card-label">Your ECE Balance</div>
-      <div class="card-value" id="balance-ece">—</div>
-      <div class="card-sub">Connect wallet to view</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">🔗</div>
-      <div class="card-label">BNB Balance</div>
-      <div class="card-value" id="balance-bnb">—</div>
-      <div class="card-sub">Native token balance</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">📈</div>
-      <div class="card-label">ECE Price (USD)</div>
-      <div class="card-value" id="price-ece">$5,068</div>
-      <div class="card-sub up" id="price-change">▲ +63.4% (24h)</div>
-    </div>
-    <div class="card">
-      <div class="card-icon">⛽</div>
-      <div class="card-label">Gas Price (Gwei)</div>
-      <div class="card-value" id="gas-price">3</div>
-      <div class="card-sub">BSC Standard Gas</div>
-    </div>
-  </div>
+                <!-- Quick Actions -->
+                <div class="bg-black/30 p-4 rounded-xl">
+                    <h3 class="font-semibold text-amber-300 mb-2">⚡ Quick Actions</h3>
+                    <button id="mintBtn" class="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg w-full mb-2">🔨 Mint Tokens</button>
+                    <button id="airdropBtn" class="btn bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg w-full mb-2">📦 Airdrop</button>
+                    <button id="setPairBtn" class="btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg w-full">🔗 Set Pair</button>
+                </div>
 
-  <div class="grid-2">
-    <div class="card-wide">
-      <div class="card-title">📈 ECE Price Chart <span class="live"><span class="live-dot"></span>LIVE</span></div>
-      <div class="chart-container"><canvas id="price-chart"></canvas></div>
-    </div>
-    <div class="card-wide">
-      <div class="card-title">📊 Volume Chart (24h)</div>
-      <div class="chart-container"><canvas id="vol-chart"></canvas></div>
-    </div>
-  </div>
+                <!-- Admin Message (simple broadcast) -->
+                <div class="bg-black/30 p-4 rounded-xl md:col-span-2">
+                    <h3 class="font-semibold text-amber-300 mb-2">📢 Broadcast Message</h3>
+                    <textarea id="adminMessage" rows="2" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white" placeholder="Enter a message for visitors..."></textarea>
+                    <button id="publishMessage" class="btn bg-amber-500 hover:bg-amber-600 text-black px-4 py-2 rounded-lg mt-2">Publish</button>
+                    <p class="text-xs text-gray-400 mt-1">This message will be shown in the Help section.</p>
+                </div>
+            </div>
+        </div>
 
-  <div class="grid-3">
-    <div class="card-wide">
-      <div class="card-title">🏦 Token Info</div>
-      <table>
-        <tr><td style="color:var(--muted);">Name</td><td><strong>Efikcoin Eternal</strong></td></tr>
-        <tr><td style="color:var(--muted);">Symbol</td><td><strong>ECE</strong></td></tr>
-        <tr><td style="color:var(--muted);">Network</td><td><strong>BNB Smart Chain</strong></td></tr>
-        <tr><td style="color:var(--muted);">Standard</td><td><strong>BEP-20</strong></td></tr>
-        <tr><td style="color:var(--muted);">Buy Tax</td><td><strong style="color:var(--green);">0%</strong></td></tr>
-        <tr><td style="color:var(--muted);">Sell Tax</td><td><strong style="color:var(--green);">0%</strong></td></tr>
-        <tr><td style="color:var(--muted);">Mintable</td><td><span class="badge badge-gold">Yes</span></td></tr>
-        <tr><td style="color:var(--muted);">Verified</td><td><span class="badge badge-green">✓ Verified</span></td></tr>
-      </table>
-    </div>
-    <div class="card-wide" style="grid-column:span 2;">
-      <div class="card-title">🔑 Contract Address</div>
-      <div class="address-box" style="margin-bottom:12px;">
-        <span id="contract-addr">0x9F8C29E496ECB6C39c221458f211234DfCB233E0</span>
-        <button class="copy-btn" onclick="copyText('0x9F8C29E496ECB6C39c221458f211234DfCB233E0')" title="Copy">📋</button>
-      </div>
-      <div class="card-title" style="margin-top:16px;">🔗 Quick Links</div>
-      <div class="btn-row">
-        <a href="https://bscscan.com/token/0x9F8C29E496ECB6C39c221458f211234DfCB233E0" target="_blank"><button class="btn btn-outline btn-sm">🔍 BscScan</button></a>
-        <a href="https://pancakeswap.finance/swap?outputCurrency=0x9F8C29E496ECB6C39c221458f211234DfCB233E0" target="_blank"><button class="btn btn-outline btn-sm">🥞 PancakeSwap</button></a>
-        <a href="https://apespace.io/bsc/0x9f8c29e496ecb6c39c221458f211234dfcb233e0" target="_blank"><button class="btn btn-outline btn-sm">🦍 ApeSpace</button></a>
-        <a href="https://www.team.finance/view-coin/0x9F8C29E496ECB6C39c221458f211234DfCB233E0" target="_blank"><button class="btn btn-outline btn-sm">🏦 Team Finance</button></a>
-        <a href="https://poocoin.app/tokens/0x9f8c29e496ecb6c39c221458f211234dfcb233e0" target="_blank"><button class="btn btn-outline btn-sm">💩 PooCoin</button></a>
-        <a href="https://dexscreener.com/bsc/0x9f8c29e496ecb6c39c221458f211234dfcb233e0" target="_blank"><button class="btn btn-outline btn-sm">📡 DexScreener</button></a>
-      </div>
-    </div>
-  </div>
-</div><!-- end dashboard -->
+        <!-- Help & Support Section -->
+        <div class="glass-card p-5">
+            <h2 class="text-2xl font-bold text-gray-200 mb-4 flex items-center gap-2">
+                <span class="text-3xl">❓</span> Help & Support
+            </h2>
+            <div id="globalMessage" class="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl mb-4">
+                <p class="text-amber-300 font-semibold">📢 Announcement</p>
+                <p id="displayMessage" class="text-gray-300">Welcome to EfikCoin Eternal! For assistance, reach out via the channels below.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-4">
+                <a href="#" onclick="window.open('https://t.me/your_telegram', '_blank')" class="bg-gray-800 hover:bg-gray-700 p-4 rounded-xl text-center transition">
+                    <span class="text-3xl">📱</span>
+                    <p class="font-semibold mt-2">Telegram</p>
+                    <p class="text-sm text-gray-400">Join our community</p>
+                </a>
+                <a href="#" onclick="window.open('https://discord.gg/your_discord', '_blank')" class="bg-gray-800 hover:bg-gray-700 p-4 rounded-xl text-center transition">
+                    <span class="text-3xl">💬</span>
+                    <p class="font-semibold mt-2">Discord</p>
+                    <p class="text-sm text-gray-400">Chat with the team</p>
+                </a>
+                <a href="mailto:support@efikcoin.org" class="bg-gray-800 hover:bg-gray-700 p-4 rounded-xl text-center transition">
+                    <span class="text-3xl">📧</span>
+                    <p class="font-semibold mt-2">Email</p>
+                    <p class="text-sm text-gray-400">support@efikcoin.org</p>
+                </a>
+            </div>
+            <p class="text-center text-gray-500 text-sm mt-4">Need help connecting your wallet? Make sure you have MetaMask or Trust Wallet installed, then click the Connect button.</p>
+        </div>
 
-<!-- ══════════════════ TRANSACTIONS ══════════════════ -->
-<div id="section-transactions" class="section">
-  <div class="section-title">📋 Transaction History</div>
-  <div class="section-desc">Live BSC transaction tracker for EfikCoin Eternal (ECE)</div>
+        <!-- Staking Preview (minimal) -->
+        <div class="glass-card p-5">
+            <h2 class="text-xl font-bold mb-3">🔒 Staking Overview</h2>
+            <p class="text-gray-400">Stake ECE and earn up to 125% APR. Lock periods: 30d · 60d · 90d · 180d · 365d.</p>
+            <div class="flex justify-between mt-4">
+                <span>Total Staked: <span id="stakingTotal">0 ECE</span></span>
+                <span>Your Stake: <span id="yourStake">0 ECE</span></span>
+            </div>
+        </div>
 
-  <div class="card-wide" style="margin-bottom:16px;">
-    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
-      <div style="flex:1;min-width:260px;">
-        <label>Wallet / Contract Address</label>
-        <input id="tx-address" value="0x9F8C29E496ECB6C39c221458f211234DfCB233E0" placeholder="0x..."/>
-      </div>
-      <div>
-        <label>Filter</label>
-        <select id="tx-filter" style="width:140px;">
-          <option value="all">All Txns</option>
-          <option value="in">Incoming</option>
-          <option value="out">Outgoing</option>
-          <option value="contract">Contract</option>
-        </select>
-      </div>
-      <div>
-        <button class="btn btn-gold" onclick="loadTransactions()">🔍 Search</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="card-wide">
-    <div class="card-title">Recent Transactions <span id="tx-count" style="font-size:0.8rem;color:var(--muted);font-weight:400;margin-left:8px;"></span></div>
-    <div id="tx-loading" style="display:none;text-align:center;padding:40px;"><div class="spinner"></div><div style="margin-top:12px;color:var(--muted);">Fetching from BSCScan...</div></div>
-    <div style="overflow-x:auto;" id="tx-table-wrap">
-      <table>
-        <thead><tr>
-          <th>Tx Hash</th><th>Block</th><th>Time</th><th>From</th><th>To</th><th>Value (BNB)</th><th>Fee (BNB)</th><th>Status</th>
-        </tr></thead>
-        <tbody id="tx-body">
-          <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px;">Enter an address and click Search to load transactions</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ STAKING ══════════════════ -->
-<div id="section-staking" class="section">
-  <div class="section-title">🔒 ECE Staking Pool</div>
-  <div class="section-desc">Stake your EfikCoin Eternal tokens and earn passive rewards</div>
-
-  <div class="grid-3" style="margin-bottom:24px;">
-    <div class="card"><div class="card-icon">🏊</div><div class="card-label">Total Staked</div><div class="card-value" id="total-staked">0 ECE</div><div class="card-sub">Global Pool</div></div>
-    <div class="card"><div class="card-icon">🎁</div><div class="card-label">Your Rewards</div><div class="card-value" id="my-rewards">0.00 ECE</div><div class="card-sub">Claimable now</div></div>
-    <div class="card"><div class="card-icon">⏳</div><div class="card-label">Lock Period</div><div class="card-value" style="font-size:1.4rem;">30 Days</div><div class="card-sub">Minimum stake</div></div>
-  </div>
-
-  <div class="grid-2">
-    <div class="staking-pool">
-      <div style="text-align:center;margin-bottom:12px;font-size:0.9rem;color:var(--muted);">ANNUAL PERCENTAGE RATE</div>
-      <div class="staking-apr">125%<span> APR</span></div>
-      <div style="margin:16px 0;">
-        <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--muted);margin-bottom:4px;"><span>Pool Capacity</span><span id="pool-pct">45%</span></div>
-        <div class="progress-bar"><div class="progress-fill" id="pool-bar" style="width:45%;"></div></div>
-      </div>
-      <div class="form-group" style="margin-top:20px;">
-        <label>Amount to Stake (ECE)</label>
-        <input type="number" id="stake-amount" placeholder="Enter ECE amount..." min="0"/>
-      </div>
-      <div class="form-group">
-        <label>Lock Period</label>
-        <select id="stake-period">
-          <option value="30">30 Days — 125% APR</option>
-          <option value="60">60 Days — 180% APR</option>
-          <option value="90">90 Days — 250% APR</option>
-          <option value="180">180 Days — 400% APR</option>
-          <option value="365">365 Days — 750% APR</option>
-        </select>
-      </div>
-      <div id="stake-preview" style="background:var(--deep);border-radius:10px;padding:16px;margin-bottom:16px;display:none;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:var(--muted);">Expected Reward</span><span class="up" id="exp-reward">0 ECE</span></div>
-        <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Unlock Date</span><span id="unlock-date" style="color:var(--gold);">—</span></div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-gold" style="flex:1;" onclick="stakeTokens()">🔒 Stake ECE</button>
-        <button class="btn btn-outline" onclick="claimRewards()">🎁 Claim</button>
-      </div>
+        <!-- Transaction History Quick Link -->
+        <div class="glass-card p-5 text-center">
+            <p class="text-gray-400">📋 View detailed transaction history on our <a href="/Efikcoin-Eternal/tx-history" class="text-amber-400 underline">dedicated page</a>.</p>
+        </div>
     </div>
 
-    <div class="card-wide" style="margin:0;">
-      <div class="card-title">📊 Staking Calculator</div>
-      <div class="form-group">
-        <label>ECE Amount</label>
-        <input type="number" id="calc-amount" placeholder="1000" oninput="calcRewards()"/>
-      </div>
-      <div class="form-group">
-        <label>Duration (Days)</label>
-        <input type="range" id="calc-days" min="30" max="365" value="90" oninput="calcRewards(); document.getElementById('calc-days-label').textContent=this.value+' days'" style="padding:0;"/>
-        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-top:4px;"><span>30d</span><span id="calc-days-label">90 days</span><span>365d</span></div>
-      </div>
-      <div style="background:var(--deep);border-radius:12px;padding:20px;margin-top:12px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div><div style="color:var(--muted);font-size:0.75rem;">Daily Reward</div><div style="font-size:1.2rem;font-weight:700;color:var(--gold);" id="r-daily">0 ECE</div></div>
-          <div><div style="color:var(--muted);font-size:0.75rem;">Monthly Reward</div><div style="font-size:1.2rem;font-weight:700;color:var(--gold);" id="r-monthly">0 ECE</div></div>
-          <div><div style="color:var(--muted);font-size:0.75rem;">Total Reward</div><div style="font-size:1.4rem;font-weight:800;color:var(--green);" id="r-total">0 ECE</div></div>
-          <div><div style="color:var(--muted);font-size:0.75rem;">Final Balance</div><div style="font-size:1.4rem;font-weight:800;color:var(--gold);" id="r-final">0 ECE</div></div>
-        </div>
-      </div>
-      <div style="margin-top:16px;">
-        <div style="font-size:0.8rem;color:var(--muted);margin-bottom:8px;">APR by Period:</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <span class="badge badge-gold">30d = 125%</span>
-          <span class="badge badge-blue">60d = 180%</span>
-          <span class="badge badge-green">90d = 250%</span>
-          <span class="badge badge-green">180d = 400%</span>
-          <span class="badge badge-green">365d = 750%</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+    <script>
+        // ==================== CONFIG ====================
+        const CONTRACT_ADDRESS = "0x9F8C29E496ECB6C39c221458f211234DfCB233E0";
+        const OWNER_ADDRESS = "0xc5ad5cfcf81ad63a94227334b898eafce6b27cca";
+        // Minimal ABI (expand as needed)
+        const ABI = [
+            "function name() view returns (string)",
+            "function symbol() view returns (string)",
+            "function decimals() view returns (uint8)",
+            "function totalSupply() view returns (uint256)",
+            "function balanceOf(address) view returns (uint256)",
+            "function transfer(address to, uint256 amount) returns (bool)",
+            "function mint(address to, uint256 amount) external",
+            "function owner() view returns (address)",
+            // Add staking functions if they exist – adjust accordingly
+            "function totalStaked() view returns (uint256)",
+            "function stakedBalance(address) view returns (uint256)"
+        ];
 
-<!-- ══════════════════ AIRDROP ══════════════════ -->
-<div id="section-airdrop" class="section">
-  <div class="section-title">🪂 ECE Airdrop Manager</div>
-  <div class="section-desc">Distribute EfikCoin Eternal tokens to multiple wallets at once</div>
+        // ==================== STATE ====================
+        let provider, signer, contract, userAddress;
+        let web3Modal;
 
-  <div class="alert alert-warn">⚠️ Connect your wallet and ensure you have sufficient ECE + BNB for gas before sending airdrops.</div>
+        // ==================== DOM ====================
+        const connectBtn = document.getElementById('connectBtn');
+        const switchNetworkBtn = document.getElementById('switchNetworkBtn');
+        const connectionIndicator = document.getElementById('connectionIndicator');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const networkStatus = document.getElementById('networkStatus');
+        const userInfo = document.getElementById('userInfo');
+        const userAddressEl = document.getElementById('userAddress');
+        const userBalanceEl = document.getElementById('userBalance');
+        const refreshBalanceBtn = document.getElementById('refreshBalance');
+        const adminDashboard = document.getElementById('adminDashboard');
+        const totalSupplyEl = document.getElementById('totalSupply');
+        const totalStakedEl = document.getElementById('totalStaked');
+        const ownerBalanceEl = document.getElementById('ownerBalance');
+        const holderCountEl = document.getElementById('holderCount');
+        const mintBtn = document.getElementById('mintBtn');
+        const airdropBtn = document.getElementById('airdropBtn');
+        const setPairBtn = document.getElementById('setPairBtn');
+        const adminMessage = document.getElementById('adminMessage');
+        const publishMessage = document.getElementById('publishMessage');
+        const displayMessage = document.getElementById('displayMessage');
+        const stakingTotal = document.getElementById('stakingTotal');
+        const yourStake = document.getElementById('yourStake');
 
-  <div class="grid-2">
-    <div class="card-wide" style="margin:0;">
-      <div class="card-title">📝 Recipient List</div>
-      <div class="airdrop-zone" id="drop-zone" onclick="document.getElementById('csv-upload').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
-        <div class="icon">📂</div>
-        <div style="font-weight:700;margin-bottom:8px;">Drop CSV file or click to upload</div>
-        <div style="font-size:0.8rem;color:var(--muted);">Format: address,amount (one per line)</div>
-        <input type="file" id="csv-upload" accept=".csv,.txt" style="display:none;" onchange="loadCSV(this)"/>
-      </div>
-      <div style="margin:16px 0;text-align:center;color:var(--muted);">— or enter manually —</div>
-      <div class="form-group">
-        <label>Recipients (address,amount per line)</label>
-        <textarea id="airdrop-list" placeholder="0xABC...123, 1000&#10;0xDEF...456, 500&#10;0x789...012, 2500"></textarea>
-      </div>
-      <div class="form-group">
-        <label>Or: Same Amount for All</label>
-        <div style="display:flex;gap:8px;">
-          <input id="uniform-amount" placeholder="ECE amount each..." style="flex:1;"/>
-          <button class="btn btn-outline" onclick="applyUniform()">Apply All</button>
-        </div>
-      </div>
-    </div>
+        // ==================== INIT WEB3MODAL ====================
+        function initWeb3Modal() {
+            const providerOptions = {
+                walletconnect: {
+                    package: WalletConnectProvider.default,
+                    options: {
+                        rpc: {
+                            56: "https://bsc-dataseed.binance.org/"
+                        }
+                    }
+                }
+            };
+            web3Modal = new Web3Modal.default({
+                cacheProvider: true,
+                providerOptions,
+                theme: "dark"
+            });
+        }
 
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card-wide" style="margin:0;">
-        <div class="card-title">📊 Airdrop Summary</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-          <div><div style="color:var(--muted);font-size:0.75rem;">Recipients</div><div style="font-size:1.6rem;font-weight:800;color:var(--gold);" id="airdrop-count">0</div></div>
-          <div><div style="color:var(--muted);font-size:0.75rem;">Total ECE</div><div style="font-size:1.6rem;font-weight:800;color:var(--gold);" id="airdrop-total">0</div></div>
-          <div><div style="color:var(--muted);font-size:0.75rem;">Est. Gas (BNB)</div><div style="font-size:1.3rem;font-weight:700;color:var(--gold2);" id="airdrop-gas">~0.001</div></div>
-          <div><div style="color:var(--muted);font-size:0.75rem;">Status</div><div style="font-size:0.9rem;color:var(--muted);" id="airdrop-status">Ready</div></div>
-        </div>
-        <div class="progress-bar" id="airdrop-progress-wrap" style="display:none;"><div class="progress-fill" id="airdrop-progress" style="width:0%;"></div></div>
-      </div>
+        // ==================== CONNECT WALLET ====================
+        async function connectWallet() {
+            try {
+                const instance = await web3Modal.connect();
+                provider = new ethers.providers.Web3Provider(instance);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
 
-      <div class="card-wide" style="margin:0;">
-        <div class="card-title">⚙️ Settings</div>
-        <div class="form-group">
-          <label>Gas Price (Gwei)</label>
-          <input id="gas-gwei" value="5" type="number"/>
-        </div>
-        <div class="form-group">
-          <label>Batch Size</label>
-          <select id="batch-size">
-            <option value="1">1 per transaction</option>
-            <option value="10" selected>10 per transaction</option>
-            <option value="50">50 per transaction</option>
-            <option value="100">100 per transaction</option>
-          </select>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-gold" style="flex:1;" onclick="previewAirdrop()">👁️ Preview</button>
-          <button class="btn btn-success" style="flex:1;" onclick="sendAirdrop()">🚀 Send Airdrop</button>
-        </div>
-      </div>
+                // Check network
+                const network = await provider.getNetwork();
+                if (network.chainId !== 56) {
+                    // try switching
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x38' }]
+                        });
+                    } catch (e) {
+                        if (e.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x38',
+                                    chainName: 'BNB Smart Chain',
+                                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                    rpcUrls: ['https://bsc-dataseed.binance.org/']
+                                }]
+                            });
+                        }
+                    }
+                    // after adding, provider might need refresh – reload
+                    window.location.reload();
+                }
 
-      <div class="card-wide" style="margin:0;" id="airdrop-log-card">
-        <div class="card-title">📋 Airdrop Log</div>
-        <div id="airdrop-log" style="font-family:monospace;font-size:0.8rem;max-height:200px;overflow-y:auto;color:var(--muted);">
-          No transactions yet...
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-<!-- ══════════════════ CONTRACT ══════════════════ -->
-<div id="section-contract" class="section">
-  <div class="section-title">📜 Contract Interaction</div>
-  <div class="section-desc">Read and write to the EfikCoin Eternal smart contract directly</div>
+                updateUI();
+                setupEventListeners(instance);
+            } catch (error) {
+                console.error(error);
+                alert('Connection failed: ' + error.message);
+            }
+        }
 
-  <div class="alert alert-info">🔗 Contract: <strong>0x9F8C29E496ECB6C39c221458f211234DfCB233E0</strong> · BNB Smart Chain</div>
+        // ==================== UPDATE UI ====================
+        async function updateUI() {
+            if (!contract || !userAddress) return;
 
-  <div class="grid-2">
-    <!-- READ FUNCTIONS -->
-    <div>
-      <div class="card-title" style="margin-bottom:12px;">👁️ Read Functions</div>
+            // Update connection indicator
+            connectionIndicator.className = 'w-3 h-3 rounded-full bg-green-500';
+            connectionStatus.innerText = 'Connected';
+            userAddressEl.innerText = userAddress;
+            userInfo.classList.remove('hidden');
 
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">name()</span><span class="function-type fn-read">Read</span>
-        </div>
-        <div class="function-body">
-          <button class="btn btn-outline btn-sm" onclick="callRead('name')">Execute</button>
-          <div class="output-box" id="out-name">Efikcoin Eternal</div>
-        </div>
-      </div>
+            // Fetch basic info
+            try {
+                const decimals = await contract.decimals();
+                const balance = await contract.balanceOf(userAddress);
+                userBalanceEl.innerText = ethers.utils.formatUnits(balance, decimals) + ' ECE';
 
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">symbol()</span><span class="function-type fn-read">Read</span>
-        </div>
-        <div class="function-body">
-          <button class="btn btn-outline btn-sm" onclick="callRead('symbol')">Execute</button>
-          <div class="output-box" id="out-symbol">ECE</div>
-        </div>
-      </div>
+                const totalSupply = await contract.totalSupply();
+                totalSupplyEl.innerText = ethers.utils.formatUnits(totalSupply, decimals) + ' ECE';
 
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">totalSupply()</span><span class="function-type fn-read">Read</span>
-        </div>
-        <div class="function-body">
-          <button class="btn btn-outline btn-sm" onclick="callRead('totalSupply')">Execute</button>
-          <div class="output-box" id="out-totalSupply">—</div>
-        </div>
-      </div>
+                // Check if owner
+                const owner = await contract.owner();
+                if (userAddress.toLowerCase() === owner.toLowerCase()) {
+                    adminDashboard.classList.remove('hidden');
+                    adminDashboard.classList.add('show-admin');
+                    // load owner-specific data
+                    const ownerBal = await contract.balanceOf(owner);
+                    ownerBalanceEl.innerText = ethers.utils.formatUnits(ownerBal, decimals) + ' ECE';
+                    // try to get totalStaked if available
+                    try {
+                        const staked = await contract.totalStaked();
+                        totalStakedEl.innerText = ethers.utils.formatUnits(staked, decimals) + ' ECE';
+                    } catch (e) { totalStakedEl.innerText = 'N/A'; }
+                    // holder count? maybe not available
+                    holderCountEl.innerText = 'Coming soon';
+                }
 
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">decimals()</span><span class="function-type fn-read">Read</span>
-        </div>
-        <div class="function-body">
-          <button class="btn btn-outline btn-sm" onclick="callRead('decimals')">Execute</button>
-          <div class="output-box" id="out-decimals">—</div>
-        </div>
-      </div>
+                // Staking info
+                try {
+                    const stakedBal = await contract.stakedBalance(userAddress);
+                    yourStake.innerText = ethers.utils.formatUnits(stakedBal, decimals) + ' ECE';
+                    const totalStaked = await contract.totalStaked();
+                    stakingTotal.innerText = ethers.utils.formatUnits(totalStaked, decimals) + ' ECE';
+                } catch (e) { /* ignore */ }
+            } catch (e) {
+                console.error(e);
+            }
+        }
 
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">balanceOf(address)</span><span class="function-type fn-read">Read</span>
-        </div>
-        <div class="function-body">
-          <div class="form-group"><label>Account</label><input id="in-balanceOf" placeholder="0x..."/></div>
-          <button class="btn btn-outline btn-sm" onclick="callBalanceOf()">Execute</button>
-          <div class="output-box" id="out-balanceOf">—</div>
-        </div>
-      </div>
+        function setupEventListeners(providerInstance) {
+            providerInstance.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                    disconnect();
+                } else {
+                    userAddress = accounts[0];
+                    updateUI();
+                }
+            });
+            providerInstance.on('chainChanged', (chainId) => {
+                window.location.reload();
+            });
+        }
 
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">allowance(owner, spender)</span><span class="function-type fn-read">Read</span>
-        </div>
-        <div class="function-body">
-          <div class="form-group"><label>Owner</label><input id="in-allow-owner" placeholder="0x..."/></div>
-          <div class="form-group"><label>Spender</label><input id="in-allow-spender" placeholder="0x..."/></div>
-          <button class="btn btn-outline btn-sm" onclick="callAllowance()">Execute</button>
-          <div class="output-box" id="out-allowance">—</div>
-        </div>
-      </div>
+        function disconnect() {
+            userAddress = null;
+            contract = null;
+            userInfo.classList.add('hidden');
+            adminDashboard.classList.add('hidden');
+            connectionIndicator.className = 'w-3 h-3 rounded-full bg-red-500';
+            connectionStatus.innerText = 'Not connected';
+            userAddressEl.innerText = '';
+            userBalanceEl.innerText = '0';
+            web3Modal.clearCachedProvider();
+        }
+// Replace these with your REAL Telegram, Discord, Email
+<a href="#" onclick="window.open('https://t.me/efikcoinofficialecosystem', '_blank')">
+<a href="#" onclick="window.open('https://discord.gg/Ub4vvudcV', '_blank')">
+<a href="mailto:Efikcoinofficial1@outlook.com"> // Efikcoinofficialecosystem@gmail.com
+        // ==================== EVENT LISTENERS ====================
+        connectBtn.addEventListener('click', connectWallet);
+        refreshBalanceBtn.addEventListener('click', updateUI);
 
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">owner()</span><span class="function-type fn-read">Read</span>
-        </div>
-        <div class="function-body">
-          <button class="btn btn-outline btn-sm" onclick="callRead('owner')">Execute</button>
-          <div class="output-box" id="out-owner">—</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- WRITE FUNCTIONS -->
-    <div>
-      <div class="card-title" style="margin-bottom:12px;">✍️ Write Functions <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">(Requires wallet)</span></div>
-
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">transfer(to, amount)</span><span class="function-type fn-write">Write</span>
-        </div>
-        <div class="function-body">
-          <div class="form-group"><label>Recipient (to)</label><input id="in-transfer-to" placeholder="0x..."/></div>
-          <div class="form-group"><label>Amount (ECE)</label><input id="in-transfer-amt" type="number" placeholder="100"/></div>
-          <button class="btn btn-gold btn-sm" onclick="writeTransfer()">🚀 Send ECE</button>
-          <div class="output-box" id="out-transfer">—</div>
-        </div>
-      </div>
-
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">approve(spender, amount)</span><span class="function-type fn-write">Write</span>
-        </div>
-        <div class="function-body">
-          <div class="form-group"><label>Spender</label><input id="in-approve-spender" placeholder="0x..."/></div>
-          <div class="form-group"><label>Amount (ECE)</label><input id="in-approve-amt" type="number" placeholder="100"/></div>
-          <button class="btn btn-gold btn-sm" onclick="writeApprove()">✅ Approve</button>
-          <div class="output-box" id="out-approve">—</div>
-        </div>
-      </div>
-
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">mint(to, amount)</span><span class="function-type fn-write">Write — Owner Only</span>
-        </div>
-        <div class="function-body">
-          <div class="alert alert-warn" style="margin-bottom:12px;font-size:0.8rem;">⚠️ Owner only function</div>
-          <div class="form-group"><label>Recipient (to)</label><input id="in-mint-to" placeholder="0x..."/></div>
-          <div class="form-group"><label>Amount (ECE)</label><input id="in-mint-amt" type="number" placeholder="1000000"/></div>
-          <button class="btn btn-gold btn-sm" onclick="writeMint()">🪙 Mint ECE</button>
-          <div class="output-box" id="out-mint">—</div>
-        </div>
-      </div>
-
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">burn(amount)</span><span class="function-type fn-write">Write</span>
-        </div>
-        <div class="function-body">
-          <div class="form-group"><label>Amount to Burn (ECE)</label><input id="in-burn-amt" type="number" placeholder="1000"/></div>
-          <button class="btn btn-danger btn-sm" onclick="writeBurn()">🔥 Burn ECE</button>
-          <div class="output-box" id="out-burn">—</div>
-        </div>
-      </div>
-
-      <div class="function-card">
-        <div class="function-header" onclick="toggleFn(this)">
-          <span class="function-name">transferOwnership(newOwner)</span><span class="function-type fn-write">Write — Owner Only</span>
-        </div>
-        <div class="function-body">
-          <div class="alert alert-danger" style="margin-bottom:12px;font-size:0.8rem;">🚨 Irreversible action!</div>
-          <div class="form-group"><label>New Owner Address</label><input id="in-new-owner" placeholder="0x..."/></div>
-          <button class="btn btn-danger btn-sm" onclick="writeTransferOwnership()">🔑 Transfer Ownership</button>
-          <div class="output-box" id="out-ownership">—</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ TOOLS ══════════════════ -->
-<div id="section-tools" class="section">
-  <div class="section-title">🛠️ Blockchain Utilities</div>
-  <div class="section-desc">Essential tools for managing your EfikCoin Eternal ecosystem</div>
-
-  <div class="grid-3">
-
-    <!-- UNIT CONVERTER -->
-    <div class="card-wide">
-      <div class="card-title">🔢 Unit Converter</div>
-      <div class="form-group"><label>Wei Amount</label><input id="conv-wei" placeholder="1000000000000000000" oninput="convertUnits('wei')"/></div>
-      <div class="form-group"><label>Gwei Amount</label><input id="conv-gwei" placeholder="1000000000" oninput="convertUnits('gwei')"/></div>
-      <div class="form-group"><label>ETH / BNB Amount</label><input id="conv-bnb" placeholder="1.0" oninput="convertUnits('bnb')"/></div>
-      <div class="form-group"><label>ECE Token Amount</label><input id="conv-ece" placeholder="ECE (18 decimals)" oninput="convertUnits('ece')"/></div>
-    </div>
-
-    <!-- WALLET CHECKER -->
-    <div class="card-wide">
-      <div class="card-title">🔍 Wallet Checker</div>
-      <div class="form-group"><label>Wallet Address</label><input id="check-addr" placeholder="0x..."/></div>
-      <button class="btn btn-gold" onclick="checkWallet()" style="margin-bottom:16px;width:100%;">🔎 Check Wallet</button>
-      <div id="wallet-check-result" style="display:none;">
-        <div style="background:var(--deep);border-radius:10px;padding:16px;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:var(--muted);">BNB Balance</span><span class="up" id="wc-bnb">—</span></div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:var(--muted);">ECE Balance</span><span style="color:var(--gold);" id="wc-ece">—</span></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Valid Address</span><span class="up" id="wc-valid">—</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TX DECODER -->
-    <div class="card-wide">
-      <div class="card-title">🔓 TX Hash Lookup</div>
-      <div class="form-group"><label>Transaction Hash</label><input id="tx-hash-input" placeholder="0x..."/></div>
-      <button class="btn btn-gold" onclick="lookupTx()" style="margin-bottom:16px;width:100%;">🔍 Lookup</button>
-      <div id="tx-lookup-result" style="font-family:monospace;font-size:0.8rem;color:var(--muted);">Enter a tx hash to see details</div>
-    </div>
-
-    <!-- GAS ESTIMATOR -->
-    <div class="card-wide">
-      <div class="card-title">⛽ Gas Estimator</div>
-      <div class="form-group"><label>Gas Limit</label><input id="gas-limit" value="21000" type="number" oninput="estimateGas()"/></div>
-      <div class="form-group"><label>Gas Price (Gwei)</label><input id="gas-price-input" value="5" type="number" oninput="estimateGas()"/></div>
-      <div style="background:var(--deep);border-radius:10px;padding:16px;margin-top:12px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:var(--muted);">Gas Fee (BNB)</span><span style="color:var(--gold);" id="gas-bnb">0.000105</span></div>
-        <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Gas Fee (USD)</span><span style="color:var(--green);" id="gas-usd">$0.066</span></div>
-      </div>
-    </div>
-
-    <!-- ADDRESS GENERATOR -->
-    <div class="card-wide">
-      <div class="card-title">🗝️ Checksum Address</div>
-      <div class="form-group"><label>Input Address (any format)</label><input id="addr-input" placeholder="0x..."/></div>
-      <button class="btn btn-gold" onclick="checksumAddr()" style="margin-bottom:16px;width:100%;">✅ Checksum</button>
-      <div class="address-box" id="checksum-result">
-        <span style="color:var(--muted);">Result will appear here</span>
-        <button class="copy-btn" onclick="copyEl('checksum-result')">📋</button>
-      </div>
-    </div>
-
-    <!-- BSC EXPLORER LINKS -->
-    <div class="card-wide">
-      <div class="card-title">🔗 Quick Explorer Links</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <a href="https://bscscan.com/token/0x9F8C29E496ECB6C39c221458f211234DfCB233E0#balances" target="_blank">
-          <button class="btn btn-outline" style="width:100%;text-align:left;">👥 Token Holders</button></a>
-        <a href="https://bscscan.com/token/0x9F8C29E496ECB6C39c221458f211234DfCB233E0#tokenTrades" target="_blank">
-          <button class="btn btn-outline" style="width:100%;text-align:left;">💱 Token Trades</button></a>
-        <a href="https://bscscan.com/token/0x9F8C29E496ECB6C39c221458f211234DfCB233E0#tokenTransfers" target="_blank">
-          <button class="btn btn-outline" style="width:100%;text-align:left;">📤 Token Transfers</button></a>
-        <a href="https://bscscan.com/address/0x9F8C29E496ECB6C39c221458f211234DfCB233E0#code" target="_blank">
-          <button class="btn btn-outline" style="width:100%;text-align:left;">📜 Source Code</button></a>
-        <a href="https://bscscan.com/address/0x9F8C29E496ECB6C39c221458f211234DfCB233E0#readContract" target="_blank">
-          <button class="btn btn-outline" style="width:100%;text-align:left;">👁️ Read Contract (BscScan)</button></a>
-        <a href="https://bscscan.com/address/0x9F8C29E496ECB6C39c221458f211234DfCB233E0#writeContract" target="_blank">
-          <button class="btn btn-gold" style="width:100%;text-align:left;">✍️ Write Contract (BscScan)</button></a>
-      </div>
-    </div>
-
-  </div>
-</div><!-- end tools -->
-
-</main>
-
-<!-- TOAST -->
-<div id="toast" style="position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--gold);color:var(--text);padding:14px 20px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.5);z-index:9999;display:none;max-width:320px;font-size:0.9rem;"></div>
-
-<script>
-// ═══════════════════════════ GLOBALS ═══════════════════════════
-const ECE_CONTRACT = '0x9F8C29E496ECB6C39c221458f211234DfCB233E0';
-const BSC_RPC = 'https://bsc-dataseed1.binance.org/';
-const BSCSCAN_API = 'https://api.bscscan.com/api';
-const ECE_ABI = [
-  {"inputs":[],"name":"name","outputs":[{"type":"string"}],"stateMutability":"view","type":"function"},
-  {"inputs":[],"name":"symbol","outputs":[{"type":"string"}],"stateMutability":"view","type":"function"},
-  {"inputs":[],"name":"decimals","outputs":[{"type":"uint8"}],"stateMutability":"view","type":"function"},
-  {"inputs":[],"name":"totalSupply","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
-  {"inputs":[],"name":"owner","outputs":[{"type":"address"}],"stateMutability":"view","type":"function"},
-  {"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
-  {"inputs":[{"name":"owner","type":"address"},{"name":"spender","type":"address"}],"name":"allowance","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
-  {"inputs":[{"name":"recipient","type":"address"},{"name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"type":"bool"}],"stateMutability":"nonpayable","type":"function"},
-  {"inputs":[{"name":"spender","type":"address"},{"name":"amount","type":"uint256"}],"name":"approve","outputs":[{"type":"bool"}],"stateMutability":"nonpayable","type":"function"},
-  {"inputs":[{"name":"to","type":"address"},{"name":"amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"},
-  {"inputs":[{"name":"amount","type":"uint256"}],"name":"burn","outputs":[],"stateMutability":"nonpayable","type":"function"},
-  {"inputs":[{"name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"}
-];
-
-let web3 = null;
-let contract = null;
-let userAccount = null;
-let priceChart = null;
-let volChart = null;
-
-// ═══════════════════════════ INIT ═══════════════════════════
-window.addEventListener('load', async () => {
-  setTimeout(() => {
-    const ol = document.getElementById('loading-overlay');
-    ol.style.opacity = '0';
-    setTimeout(() => ol.style.display = 'none', 500);
-  }, 2200);
-
-  // Init read-only web3
-  try {
-    web3 = new Web3(new Web3.providers.HttpProvider(BSC_RPC));
-    contract = new web3.eth.Contract(ECE_ABI, ECE_CONTRACT);
-    await callRead('totalSupply');
-    await callRead('decimals');
-  } catch(e) { console.log('RPC init:', e.message); }
-
-  initCharts();
-  estimateGas();
-  loadLivePrice();
-  setInterval(loadLivePrice, 30000);
-});
-
-// ═══════════════════════════ WALLET ═══════════════════════════
-async function connectWallet() {
-  if (!window.ethereum) { toast('❌ MetaMask not found. Please install MetaMask!', 'danger'); return; }
-  try {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    userAccount = accounts[0];
-
-    // Switch to BSC
-    try {
-      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x38' }] });
-    } catch(e) {
-      if (e.code === 4902) {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [{ chainId: '0x38', chainName: 'BNB Smart Chain', nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 }, rpcUrls: ['https://bsc-dataseed.binance.org'], blockExplorerUrls: ['https://bscscan.com'] }]
+        // Admin actions (simplified – just show modals)
+        mintBtn.addEventListener('click', () => {
+            alert('Minting function – implement with a proper form');
         });
-      }
-    }
+        airdropBtn.addEventListener('click', () => {
+            alert('Airdrop function – implement with CSV upload');
+        });
+        setPairBtn.addEventListener('click', () => {
+            alert('Set pair address function');
+        });
 
-    web3 = new Web3(window.ethereum);
-    contract = new web3.eth.Contract(ECE_ABI, ECE_CONTRACT);
+        // Broadcast message (store in localStorage for demo)
+        publishMessage.addEventListener('click', () => {
+            const msg = adminMessage.value.trim();
+            if (msg) {
+                localStorage.setItem('efikMessage', msg);
+                displayMessage.innerText = msg;
+                adminMessage.value = '';
+            }
+        });
 
-    document.getElementById('connect-btn').style.display = 'none';
-    document.getElementById('wallet-display').style.display = 'block';
-    const short = userAccount.slice(0,6) + '...' + userAccount.slice(-4);
-    document.getElementById('wallet-addr-text').textContent = short;
+        // Load stored message
+        const savedMsg = localStorage.getItem('efikMessage');
+        if (savedMsg) displayMessage.innerText = savedMsg;
 
-    // Load balances
-    const bnbBal = await web3.eth.getBalance(userAccount);
-    const bnbFormatted = parseFloat(web3.utils.fromWei(bnbBal, 'ether')).toFixed(4);
-    document.getElementById('balance-bnb').textContent = bnbFormatted + ' BNB';
+        // Switch network (manual)
+        switchNetworkBtn.addEventListener('click', async () => {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x38' }]
+                });
+            } catch (e) {
+                if (e.code === 4902) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x38',
+                            chainName: 'BNB Smart Chain',
+                            nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                            rpcUrls: ['https://bsc-dataseed.binance.org/']
+                        }]
+                    });
+                }
+            }
+        });
 
-    try {
-      const eceBal = await contract.methods.balanceOf(userAccount).call();
-      const eceFormatted = parseFloat(web3.utils.fromWei(eceBal, 'ether')).toLocaleString();
-      document.getElementById('balance-ece').textContent = eceFormatted + ' ECE';
-    } catch(e) { document.getElementById('balance-ece').textContent = '0 ECE'; }
-
-    toast('✅ Wallet connected: ' + short, 'success');
-  } catch(e) { toast('❌ ' + e.message, 'danger'); }
-}
-
-// ═══════════════════════════ NAVIGATION ═══════════════════════════
-function showSection(name) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('section-' + name).classList.add('active');
-  event.target.classList.add('active');
-}
-
-// ═══════════════════════════ LIVE PRICE ═══════════════════════════
-async function loadLivePrice() {
-  try {
-    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd');
-    const d = await r.json();
-    if (d.binancecoin) {
-      const bnb = d.binancecoin.usd;
-      document.getElementById('t-bnb').textContent = '$' + bnb.toLocaleString();
-      // Update gas USD estimate
-      estimateGas();
-    }
-  } catch(e) {}
-}
-
-// ═══════════════════════════ CHARTS ═══════════════════════════
-function initCharts() {
-  const hours = [];
-  const prices = [];
-  const vols = [];
-  let basePrice = 5068;
-  for (let i = 24; i >= 0; i--) {
-    const d = new Date();
-    d.setHours(d.getHours() - i);
-    hours.push(d.getHours() + ':00');
-    basePrice = basePrice * (1 + (Math.random() - 0.45) * 0.08);
-    prices.push(parseFloat(basePrice.toFixed(2)));
-    vols.push(parseFloat((Math.random() * 2 + 0.5).toFixed(2)));
-  }
-
-  const chartOpts = {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
-    scales: {
-      x: { grid: { color: 'rgba(42,42,90,0.5)' }, ticks: { color: '#8888aa', maxTicksLimit: 8 } },
-      y: { grid: { color: 'rgba(42,42,90,0.5)' }, ticks: { color: '#8888aa' } }
-    }
-  };
-
-  priceChart = new Chart(document.getElementById('price-chart'), {
-    type: 'line',
-    data: {
-      labels: hours,
-      datasets: [{ data: prices, borderColor: '#FFD700', backgroundColor: 'rgba(255,215,0,0.05)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0 }]
-    },
-    options: chartOpts
-  });
-
-  volChart = new Chart(document.getElementById('vol-chart'), {
-    type: 'bar',
-    data: {
-      labels: hours,
-      datasets: [{ data: vols, backgroundColor: 'rgba(68,136,255,0.5)', borderColor: '#4488ff', borderWidth: 1 }]
-    },
-    options: { ...chartOpts, scales: { x: { grid: { color: 'rgba(42,42,90,0.5)' }, ticks: { color: '#8888aa', maxTicksLimit: 8 } }, y: { grid: { color: 'rgba(42,42,90,0.5)' }, ticks: { color: '#8888aa' } } } }
-  });
-}
-
-// ═══════════════════════════ TRANSACTIONS ═══════════════════════════
-async function loadTransactions() {
-  const addr = document.getElementById('tx-address').value.trim();
-  if (!addr) { toast('Please enter an address', 'warn'); return; }
-
-  document.getElementById('tx-loading').style.display = 'block';
-  document.getElementById('tx-body').innerHTML = '';
-
-  try {
-    const url = `${BSCSCAN_API}?module=account&action=txlist&address=${addr}&startblock=0&endblock=99999999&page=1&offset=20&sort=desc&apikey=YourApiKeyToken`;
-    const r = await fetch(url);
-    const d = await r.json();
-
-    document.getElementById('tx-loading').style.display = 'none';
-
-    if (d.status === '1' && d.result && d.result.length > 0) {
-      document.getElementById('tx-count').textContent = `${d.result.length} transactions`;
-      const tbody = document.getElementById('tx-body');
-      tbody.innerHTML = '';
-      d.result.forEach(tx => {
-        const from = tx.from.slice(0,8)+'...'+tx.from.slice(-6);
-        const to = (tx.to||'').slice(0,8)+'...'+(tx.to||'').slice(-6);
-        const val = parseFloat(Web3.utils ? Web3.utils.fromWei(tx.value,'ether') : tx.value/1e18).toFixed(4);
-        const fee = ((tx.gasPrice * tx.gasUsed)/1e18).toFixed(6);
-        const dt = new Date(tx.timeStamp * 1000).toLocaleString();
-        const status = tx.isError === '0' ? '<span class="badge badge-green">✓ Success</span>' : '<span class="badge badge-red">✗ Failed</span>';
-        const hash = tx.hash.slice(0,10)+'...'+tx.hash.slice(-6);
-        tbody.innerHTML += `<tr>
-          <td><a href="https://bscscan.com/tx/${tx.hash}" target="_blank" class="hash">${hash}</a></td>
-          <td>${tx.blockNumber}</td>
-          <td style="font-size:0.75rem;">${dt}</td>
-          <td><span class="hash">${from}</span></td>
-          <td><span class="hash">${to}</span></td>
-          <td class="up">${val}</td>
-          <td style="color:var(--muted);">${fee}</td>
-          <td>${status}</td>
-        </tr>`;
-      });
-    } else {
-      document.getElementById('tx-body').innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px;">No transactions found (BSCScan API key may be needed for full access)</td></tr>`;
-      // Show demo data
-      showDemoTx();
-    }
-  } catch(e) {
-    document.getElementById('tx-loading').style.display = 'none';
-    showDemoTx();
-  }
-}
-
-function showDemoTx() {
-  const demo = [
-    { hash: '0xa1b2c3d4e5f6...', block: '46001234', time: new Date().toLocaleString(), from: '0x9F8C...3E0', to: '0x7FAb...0B6', val: '0.0500', fee: '0.000105', status: 'success', method: 'addLiquidity' },
-    { hash: '0xf6e5d4c3b2a1...', block: '46001198', time: new Date(Date.now()-3600000).toLocaleString(), from: '0x1234...5678', to: '0x9F8C...3E0', val: '0.0010', fee: '0.000063', status: 'success', method: 'transfer' },
-    { hash: '0xaabbccdd1122...', block: '46001100', time: new Date(Date.now()-7200000).toLocaleString(), from: '0x9F8C...3E0', to: '0xPCS...DEX', val: '0.0000', fee: '0.000189', status: 'success', method: 'createPair' },
-    { hash: '0x11223344aabb...', block: '45999800', time: new Date(Date.now()-86400000).toLocaleString(), from: '0xDEPL...0YER', to: '0x0000...0000', val: '0.0000', fee: '0.005231', status: 'success', method: 'deploy' },
-  ];
-  document.getElementById('tx-count').textContent = `${demo.length} recent transactions (demo)`;
-  const tbody = document.getElementById('tx-body');
-  tbody.innerHTML = '';
-  demo.forEach(tx => {
-    tbody.innerHTML += `<tr>
-      <td><span class="hash">${tx.hash}</span></td>
-      <td>${tx.block}</td>
-      <td style="font-size:0.75rem;">${tx.time}</td>
-      <td><span class="hash">${tx.from}</span></td>
-      <td><span class="hash">${tx.to}</span></td>
-      <td class="up">${tx.val}</td>
-      <td style="color:var(--muted);">${tx.fee}</td>
-      <td><span class="badge badge-green">✓ Success</span></td>
-    </tr>`;
-  });
-}
-
-// ═══════════════════════════ STAKING ═══════════════════════════
-document.getElementById('stake-amount').addEventListener('input', updateStakePreview);
-document.getElementById('stake-period').addEventListener('change', updateStakePreview);
-
-const APR_MAP = { 30: 1.25, 60: 1.80, 90: 2.50, 180: 4.00, 365: 7.50 };
-
-function updateStakePreview() {
-  const amt = parseFloat(document.getElementById('stake-amount').value) || 0;
-  const days = parseInt(document.getElementById('stake-period').value);
-  if (amt <= 0) { document.getElementById('stake-preview').style.display = 'none'; return; }
-  const apr = APR_MAP[days];
-  const reward = amt * apr * (days / 365);
-  const unlockDate = new Date();
-  unlockDate.setDate(unlockDate.getDate() + days);
-  document.getElementById('exp-reward').textContent = reward.toFixed(2) + ' ECE';
-  document.getElementById('unlock-date').textContent = unlockDate.toDateString();
-  document.getElementById('stake-preview').style.display = 'block';
-}
-
-function calcRewards() {
-  const amt = parseFloat(document.getElementById('calc-amount').value) || 0;
-  const days = parseInt(document.getElementById('calc-days').value);
-  let apr = 1.25;
-  if (days >= 365) apr = 7.50;
-  else if (days >= 180) apr = 4.00;
-  else if (days >= 90) apr = 2.50;
-  else if (days >= 60) apr = 1.80;
-  const total = amt * apr * (days / 365);
-  const daily = total / days;
-  const monthly = daily * 30;
-  document.getElementById('r-daily').textContent = daily.toFixed(4) + ' ECE';
-  document.getElementById('r-monthly').textContent = monthly.toFixed(2) + ' ECE';
-  document.getElementById('r-total').textContent = total.toFixed(2) + ' ECE';
-  document.getElementById('r-final').textContent = (amt + total).toFixed(2) + ' ECE';
-}
-
-function stakeTokens() {
-  if (!userAccount) { toast('🔗 Please connect your wallet first', 'warn'); return; }
-  const amt = document.getElementById('stake-amount').value;
-  if (!amt || amt <= 0) { toast('Enter a valid stake amount', 'warn'); return; }
-  toast('🔒 Staking ' + amt + ' ECE — approve in MetaMask', 'info');
-}
-
-function claimRewards() {
-  if (!userAccount) { toast('🔗 Please connect your wallet first', 'warn'); return; }
-  toast('🎁 Claiming rewards — approve in MetaMask', 'info');
-}
-
-// ═══════════════════════════ AIRDROP ═══════════════════════════
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('drop-zone').classList.remove('drag');
-  const file = e.dataTransfer.files[0];
-  if (file) loadFileContent(file);
-}
-
-function loadCSV(input) {
-  const file = input.files[0];
-  if (file) loadFileContent(file);
-}
-
-function loadFileContent(file) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById('airdrop-list').value = e.target.result;
-    parseAirdropList();
-    toast('✅ File loaded: ' + file.name, 'success');
-  };
-  reader.readAsText(file);
-}
-
-function applyUniform() {
-  const amt = document.getElementById('uniform-amount').value;
-  const lines = document.getElementById('airdrop-list').value.trim().split('\n');
-  const updated = lines.map(l => {
-    const parts = l.split(/[,\s]+/);
-    return parts[0] ? parts[0] + ', ' + amt : l;
-  });
-  document.getElementById('airdrop-list').value = updated.join('\n');
-  parseAirdropList();
-}
-
-function parseAirdropList() {
-  const lines = document.getElementById('airdrop-list').value.trim().split('\n').filter(l => l.trim());
-  let total = 0;
-  let valid = 0;
-  lines.forEach(l => {
-    const parts = l.split(/[,\s]+/);
-    if (parts.length >= 2 && parts[1]) { total += parseFloat(parts[1]) || 0; valid++; }
-  });
-  document.getElementById('airdrop-count').textContent = valid;
-  document.getElementById('airdrop-total').textContent = total.toLocaleString();
-  document.getElementById('airdrop-gas').textContent = '~' + (valid * 0.0001).toFixed(4);
-}
-
-document.getElementById('airdrop-list').addEventListener('input', parseAirdropList);
-
-function previewAirdrop() {
-  parseAirdropList();
-  const count = parseInt(document.getElementById('airdrop-count').textContent) || 0;
-  if (!count) { toast('No valid recipients found', 'warn'); return; }
-  toast(`👁️ Preview: ${count} wallets will receive ECE tokens`, 'info');
-}
-
-function sendAirdrop() {
-  if (!userAccount) { toast('🔗 Connect wallet first', 'warn'); return; }
-  const count = parseInt(document.getElementById('airdrop-count').textContent) || 0;
-  if (!count) { toast('Add recipients first', 'warn'); return; }
-  const log = document.getElementById('airdrop-log');
-  log.innerHTML = `<span style="color:var(--gold);">[${new Date().toLocaleTimeString()}]</span> Starting airdrop to ${count} wallets...\n`;
-  toast('🚀 Airdrop initiated — check MetaMask', 'success');
-  document.getElementById('airdrop-status').textContent = 'Processing...';
-  document.getElementById('airdrop-progress-wrap').style.display = 'block';
-  let pct = 0;
-  const interval = setInterval(() => {
-    pct += Math.random() * 15;
-    if (pct >= 100) { pct = 100; clearInterval(interval); document.getElementById('airdrop-status').textContent = 'Complete!'; log.innerHTML += `<span style="color:var(--green);">[${new Date().toLocaleTimeString()}]</span> ✅ Airdrop simulation complete!\n`; }
-    document.getElementById('airdrop-progress').style.width = pct + '%';
-  }, 400);
-}
-
-// ═══════════════════════════ CONTRACT FUNCTIONS ═══════════════════════════
-function toggleFn(header) {
-  const body = header.nextElementSibling;
-  body.classList.toggle('open');
-}
-
-async function callRead(fn) {
-  try {
-    if (!contract) { web3 = new Web3(new Web3.providers.HttpProvider(BSC_RPC)); contract = new web3.eth.Contract(ECE_ABI, ECE_CONTRACT); }
-    const result = await contract.methods[fn]().call();
-    const el = document.getElementById('out-' + fn);
-    if (el) {
-      if (fn === 'totalSupply') { el.textContent = parseFloat(result / 1e18).toLocaleString() + ' ECE'; }
-      else { el.textContent = result; }
-    }
-    return result;
-  } catch(e) {
-    const el = document.getElementById('out-' + fn);
-    if (el) el.textContent = 'Error: ' + e.message;
-    return null;
-  }
-}
-
-async function callBalanceOf() {
-  const addr = document.getElementById('in-balanceOf').value.trim();
-  if (!addr) { toast('Enter an address', 'warn'); return; }
-  try {
-    const result = await contract.methods.balanceOf(addr).call();
-    document.getElementById('out-balanceOf').textContent = parseFloat(result / 1e18).toLocaleString() + ' ECE';
-  } catch(e) { document.getElementById('out-balanceOf').textContent = 'Error: ' + e.message; }
-}
-
-async function callAllowance() {
-  const owner = document.getElementById('in-allow-owner').value.trim();
-  const spender = document.getElementById('in-allow-spender').value.trim();
-  if (!owner || !spender) { toast('Enter both addresses', 'warn'); return; }
-  try {
-    const result = await contract.methods.allowance(owner, spender).call();
-    document.getElementById('out-allowance').textContent = parseFloat(result / 1e18).toFixed(4) + ' ECE';
-  } catch(e) { document.getElementById('out-allowance').textContent = 'Error: ' + e.message; }
-}
-
-async function writeTransfer() {
-  if (!userAccount) { toast('Connect wallet', 'warn'); return; }
-  const to = document.getElementById('in-transfer-to').value.trim();
-  const amt = document.getElementById('in-transfer-amt').value;
-  if (!to || !amt) { toast('Fill all fields', 'warn'); return; }
-  try {
-    const amount = web3.utils.toWei(amt, 'ether');
-    const tx = await contract.methods.transfer(to, amount).send({ from: userAccount });
-    document.getElementById('out-transfer').textContent = '✅ Tx: ' + tx.transactionHash;
-    toast('✅ Transfer successful!', 'success');
-  } catch(e) { document.getElementById('out-transfer').textContent = 'Error: ' + e.message; }
-}
-
-async function writeApprove() {
-  if (!userAccount) { toast('Connect wallet', 'warn'); return; }
-  const spender = document.getElementById('in-approve-spender').value.trim();
-  const amt = document.getElementById('in-approve-amt').value;
-  if (!spender || !amt) { toast('Fill all fields', 'warn'); return; }
-  try {
-    const amount = web3.utils.toWei(amt, 'ether');
-    const tx = await contract.methods.approve(spender, amount).send({ from: userAccount });
-    document.getElementById('out-approve').textContent = '✅ Tx: ' + tx.transactionHash;
-    toast('✅ Approved!', 'success');
-  } catch(e) { document.getElementById('out-approve').textContent = 'Error: ' + e.message; }
-}
-
-async function writeMint() {
-  if (!userAccount) { toast('Connect wallet', 'warn'); return; }
-  const to = document.getElementById('in-mint-to').value.trim();
-  const amt = document.getElementById('in-mint-amt').value;
-  if (!to || !amt) { toast('Fill all fields', 'warn'); return; }
-  try {
-    const amount = web3.utils.toWei(amt, 'ether');
-    const tx = await contract.methods.mint(to, amount).send({ from: userAccount });
-    document.getElementById('out-mint').textContent = '✅ Minted! Tx: ' + tx.transactionHash;
-    toast('🪙 Minted ' + amt + ' ECE!', 'success');
-  } catch(e) { document.getElementById('out-mint').textContent = 'Error: ' + e.message; }
-}
-
-async function writeBurn() {
-  if (!userAccount) { toast('Connect wallet', 'warn'); return; }
-  const amt = document.getElementById('in-burn-amt').value;
-  if (!amt || amt <= 0) { toast('Enter amount', 'warn'); return; }
-  if (!confirm('Burn ' + amt + ' ECE? This is irreversible!')) return;
-  try {
-    const amount = web3.utils.toWei(amt, 'ether');
-    const tx = await contract.methods.burn(amount).send({ from: userAccount });
-    document.getElementById('out-burn').textContent = '🔥 Burned! Tx: ' + tx.transactionHash;
-    toast('🔥 Burned ' + amt + ' ECE!', 'success');
-  } catch(e) { document.getElementById('out-burn').textContent = 'Error: ' + e.message; }
-}
-
-async function writeTransferOwnership() {
-  if (!userAccount) { toast('Connect wallet', 'warn'); return; }
-  const newOwner = document.getElementById('in-new-owner').value.trim();
-  if (!newOwner) { toast('Enter new owner address', 'warn'); return; }
-  if (!confirm('⚠️ Transfer ownership to ' + newOwner + '? THIS IS IRREVERSIBLE!')) return;
-  try {
-    const tx = await contract.methods.transferOwnership(newOwner).send({ from: userAccount });
-    document.getElementById('out-ownership').textContent = '✅ Ownership transferred! Tx: ' + tx.transactionHash;
-    toast('🔑 Ownership transferred', 'success');
-  } catch(e) { document.getElementById('out-ownership').textContent = 'Error: ' + e.message; }
-}
-
-// ═══════════════════════════ TOOLS ═══════════════════════════
-function convertUnits(from) {
-  const WEI = BigInt;
-  try {
-    let wei;
-    if (from === 'wei') {
-      const v = document.getElementById('conv-wei').value || '0';
-      wei = parseFloat(v);
-      document.getElementById('conv-gwei').value = (wei / 1e9).toFixed(9);
-      document.getElementById('conv-bnb').value = (wei / 1e18).toFixed(18);
-      document.getElementById('conv-ece').value = (wei / 1e18).toFixed(18);
-    } else if (from === 'gwei') {
-      const v = parseFloat(document.getElementById('conv-gwei').value || '0');
-      document.getElementById('conv-wei').value = (v * 1e9).toFixed(0);
-      document.getElementById('conv-bnb').value = (v / 1e9).toFixed(18);
-      document.getElementById('conv-ece').value = (v / 1e9).toFixed(18);
-    } else if (from === 'bnb' || from === 'ece') {
-      const v = parseFloat(document.getElementById('conv-' + from).value || '0');
-      document.getElementById('conv-wei').value = (v * 1e18).toFixed(0);
-      document.getElementById('conv-gwei').value = (v * 1e9).toFixed(6);
-      if (from === 'bnb') document.getElementById('conv-ece').value = v;
-      else document.getElementById('conv-bnb').value = v;
-    }
-  } catch(e) {}
-}
-
-async function checkWallet() {
-  const addr = document.getElementById('check-addr').value.trim();
-  if (!addr) { toast('Enter wallet address', 'warn'); return; }
-  const valid = /^0x[0-9a-fA-F]{40}$/.test(addr);
-  document.getElementById('wallet-check-result').style.display = 'block';
-  document.getElementById('wc-valid').textContent = valid ? '✅ Valid' : '❌ Invalid';
-  if (!valid) return;
-  try {
-    const w3 = new Web3(new Web3.providers.HttpProvider(BSC_RPC));
-    const bnb = await w3.eth.getBalance(addr);
-    document.getElementById('wc-bnb').textContent = parseFloat(w3.utils.fromWei(bnb,'ether')).toFixed(6) + ' BNB';
-    const c = new w3.eth.Contract(ECE_ABI, ECE_CONTRACT);
-    const ece = await c.methods.balanceOf(addr).call();
-    document.getElementById('wc-ece').textContent = parseFloat(ece / 1e18).toLocaleString() + ' ECE';
-  } catch(e) {
-    document.getElementById('wc-bnb').textContent = 'RPC Error';
-    document.getElementById('wc-ece').textContent = 'RPC Error';
-  }
-}
-
-async function lookupTx() {
-  const hash = document.getElementById('tx-hash-input').value.trim();
-  if (!hash) { toast('Enter a tx hash', 'warn'); return; }
-  const el = document.getElementById('tx-lookup-result');
-  el.textContent = 'Looking up...';
-  try {
-    const url = `${BSCSCAN_API}?module=transaction&action=gettxreceiptstatus&txhash=${hash}&apikey=YourApiKeyToken`;
-    const r = await fetch(url);
-    const d = await r.json();
-    const status = d.result?.status === '1' ? '✅ SUCCESS' : d.result?.status === '0' ? '❌ FAILED' : '⏳ PENDING';
-    el.innerHTML = `Hash: ${hash}\nStatus: ${status}\n<a href="https://bscscan.com/tx/${hash}" target="_blank" style="color:var(--blue);">View on BscScan →</a>`;
-  } catch(e) {
-    el.innerHTML = `Hash: ${hash}\n<a href="https://bscscan.com/tx/${hash}" target="_blank" style="color:var(--blue);">View on BscScan →</a>`;
-  }
-}
-
-function estimateGas() {
-  const limit = parseFloat(document.getElementById('gas-limit')?.value || 21000);
-  const gwei = parseFloat(document.getElementById('gas-price-input')?.value || 5);
-  const bnbFee = (limit * gwei * 1e-9);
-  const bnbPrice = 628;
-  document.getElementById('gas-bnb').textContent = bnbFee.toFixed(8) + ' BNB';
-  document.getElementById('gas-usd').textContent = '$' + (bnbFee * bnbPrice).toFixed(4);
-}
-
-function checksumAddr() {
-  const addr = document.getElementById('addr-input').value.trim();
-  if (!addr || !/^0x[0-9a-fA-F]{40}$/.test(addr)) { toast('Invalid address format', 'warn'); return; }
-  try {
-    const w3 = new Web3();
-    const cs = w3.utils.toChecksumAddress(addr);
-    const el = document.getElementById('checksum-result');
-    el.querySelector('span').textContent = cs;
-    el.querySelector('span').style.color = 'var(--gold)';
-  } catch(e) { toast('Error: ' + e.message, 'danger'); }
-}
-
-// ═══════════════════════════ UTILS ═══════════════════════════
-function copyText(text) {
-  navigator.clipboard.writeText(text).then(() => toast('📋 Copied!', 'success'));
-}
-
-function copyEl(id) {
-  const text = document.getElementById(id).querySelector('span')?.textContent || '';
-  copyText(text);
-}
-
-const TOAST_COLORS = { success: '#00ff88', danger: '#ff4466', warn: '#ffa500', info: '#4488ff' };
-function toast(msg, type = 'info') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.style.borderColor = TOAST_COLORS[type] || TOAST_COLORS.info;
-  el.style.display = 'block';
-  clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(() => el.style.display = 'none', 3500);
-}
-</script>
+        // Auto-connect if cached
+        window.addEventListener('load', () => {
+            initWeb3Modal();
+            if (web3Modal.cachedProvider) {
+                connectWallet();
+            }
+        });
+    </script>
 </body>
 </html>

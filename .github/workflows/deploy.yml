@@ -14,7 +14,7 @@ jobs:
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: YOUR_ACCOUNT_ID  # Replace with your Cloudflare Account ID
+          apiToken: ${{ secrets }}
+          accountId: caa90ef660fab33d2269b13b4992fd2c
           projectName: efikcoin-eternal
           directory: .

@@ -540,3 +540,15 @@
 </body>
 </html>
 <style>#dexscreener-embed{position:relative;width:100%;padding-bottom:125%;}@media(min-width:1400px){#dexscreener-embed{padding-bottom:65%;}}#dexscreener-embed iframe{position:absolute;width:100%;height:100%;top:0;left:0;border:0;}</style><div id="dexscreener-embed"><iframe src="https://dexscreener.com/bsc/0x7FAbe1cc407f0e01c3cdF5Cc05744f8D98bC70B6?embed=1&loadChartSettings=0&chartLeftToolbar=0&chartDefaultOnMobile=1&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15"></iframe></div>
+<head>
+  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LecB4ksAAAAAFj4NK3iUDhpKywP_7xzq7nxrjeZ"></script>
+  <!-- Your code -->
+</head>
+<script>
+  function onClick(e) {
+    e.preventDefault();
+    grecaptcha.enterprise.ready(async () => {
+      const token = await grecaptcha.enterprise.execute('6LecB4ksAAAAAFj4NK3iUDhpKywP_7xzq7nxrjeZ', {action: 'LOGIN'});
+    });
+  }
+</script>

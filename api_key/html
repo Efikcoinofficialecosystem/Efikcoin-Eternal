@@ -1,0 +1,6 @@
+<button class="g-recaptcha"
+    data-sitekey="6LecB4ksAAAAAFj4NK3iUDhpKywP_7xzq7nxrjeZ"
+    data-callback='onSubmit'
+    data-action='submit'>
+  Submit
+</button>

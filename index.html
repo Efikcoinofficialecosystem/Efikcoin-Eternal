@@ -3,460 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EfikCoin Ecosystem · Eternal · Global · Admin</title>
+    <title>EfikCoin Eternal – Complete DeFi Ecosystem</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         body { background: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
         .glass-card { background: rgba(20,20,20,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,215,0,0.15); border-radius: 1.5rem; }
         .btn { transition: all 0.2s; cursor: pointer; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(255,215,0,0.3); }
         .tab-active { border-bottom: 2px solid #f59e0b; color: #f59e0b; }
-        .admin-only { display: none; }
-        #adminPanel { border: 2px solid #f59e0b; background: rgba(0,0,0,0.6); }
-        .alert { background: #dc2626; color: white; padding: 0.5rem; border-radius: 0.5rem; margin-bottom: 1rem; display: none; }
+        .owner-only { display: none; }
+        .loading { opacity: 0.6; pointer-events: none; }
     </style>
 </head>
 <body class="p-4 md:p-6">
     <div class="max-w-7xl mx-auto space-y-6">
-        <!-- Header with all three brands -->
+
+        <!-- Header with title and logo (ASCII art removed for brevity) -->
         <div class="text-center">
-            <h1 class="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-clip-text text-transparent">
-                EfikCoin <span class="text-3xl">· Eternal · Global ·</span>
+            <h1 class="text-5xl font-extrabold bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-clip-text text-transparent">
+                EfikCoin Eternal
             </h1>
-            <p class="text-gray-400 mt-2 text-lg">ECE · Complete Blockchain Ecosystem · Live on BSC</p>
-            <div class="flex justify-center gap-4 mt-2 text-sm">
-                <span class="px-3 py-1 bg-gray-800 rounded-full">🔐 Self‑custody</span>
-                <span class="px-3 py-1 bg-gray-800 rounded-full">⚡ 0% tax</span>
-                <span class="px-3 py-1 bg-gray-800 rounded-full">🌍 Global reach</span>
-            </div>
+            <p class="text-gray-400 mt-2">ECE · Complete Decentralized Finance Ecosystem</p>
+            <p class="text-sm text-gray-500 break-all mt-2 font-mono bg-gray-800/50 p-2 rounded-xl inline-block">
+                Contract: 0x9F8C29E496ECB6C39c221458f211234DfCB233E0
+            </p>
         </div>
 
-        <!-- Live Network Fee Collector (invisible but active) -->
-        <div id="feeCollector" data-address="0xc5ad5cfcf81ad63a94227334b898eafce6b27cca" style="display: none;"></div>
-
-        <!-- Connection & Security Bar -->
+        <!-- Connection + Network Bar -->
         <div class="glass-card p-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div id="connectionIndicator" class="w-3 h-3 rounded-full bg-red-500"></div>
                 <span id="connectionStatus" class="font-medium text-gray-300">Not connected</span>
                 <span id="networkStatus" class="text-sm text-gray-500"></span>
-                <span id="securityBadge" class="ml-2 px-2 py-1 bg-green-900 text-green-300 text-xs rounded-full hidden">✓ Secure</span>
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-3 flex-wrap items-center">
+                <select id="networkSelector" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm">
+                    <option value="56" selected>BNB Smart Chain (BSC)</option>
+                    <option value="1">Ethereum Mainnet</option>
+                    <option value="137">Polygon</option>
+                </select>
                 <button id="connectBtn" class="btn bg-amber-500 hover:bg-amber-600 text-black px-6 py-2 rounded-full text-sm font-bold shadow-lg">
                     🔌 Connect Wallet
                 </button>
                 <button id="switchNetworkBtn" class="btn bg-gray-700 hover:bg-gray-600 text-white px-5 py-2 rounded-full text-sm shadow-lg">
-                    🔄 Switch to BSC
+                    🔄 Switch
                 </button>
             </div>
         </div>
 
-        <!-- Security Alert (only for admin) -->
-        <div id="securityAlert" class="alert hidden"></div>
+        <!-- User Info -->
+        <div id="userInfo" class="glass-card p-4 hidden">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <p class="text-gray-400 text-sm">Connected Address</p>
+                    <p id="userAddress" class="font-mono text-sm break-all bg-black/30 p-2 rounded-lg"></p>
+                </div>
+                <div class="text-right">
+                    <p class="text-gray-400 text-sm">ECE Balance</p>
+                    <p id="userBalance" class="text-2xl font-bold text-amber-400">0</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-gray-400 text-sm">BNB Balance</p>
+                    <p id="bnbBalance" class="text-2xl font-bold text-amber-400">0</p>
+                </div>
+                <button id="refreshBalance" class="btn bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-full text-sm">
+                    🔄 Refresh
+                </button>
+            </div>
+        </div>
 
-        <!-- Global Navigation Tabs -->
-        <div class="flex flex-wrap justify-center gap-2 md:gap-4 border-b border-gray-700 pb-2">
+        <!-- Admin Panel (owner only) -->
+        <div id="adminPanel" class="glass-card p-5 border-2 border-amber-500/50 hidden">
+            <h2 class="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2">👑 Founder's Admin</h2>
+            <div class="grid md:grid-cols-4 gap-3">
+                <button id="adminMint" class="btn bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg">🔨 Mint</button>
+                <button id="adminSetPair" class="btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg">🔗 Set Pair</button>
+                <button id="adminWithdrawFees" class="btn bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg">💰 Withdraw Fees</button>
+                <button id="adminBroadcast" class="btn bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-lg">📢 Broadcast</button>
+            </div>
+            <div class="mt-4">
+                <textarea id="broadcastMessage" rows="2" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white" placeholder="Announcement..."></textarea>
+            </div>
+        </div>
+
+        <!-- Registration Section (simple client registration) -->
+        <div class="glass-card p-5">
+            <h2 class="text-2xl font-bold mb-4">📝 Client Registration</h2>
+            <div class="flex gap-3 items-center">
+                <input type="email" id="regEmail" placeholder="Enter your email" class="flex-1 bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white">
+                <button id="registerBtn" class="btn bg-amber-500 hover:bg-amber-600 text-black px-6 py-2 rounded-lg">Register</button>
+            </div>
+            <p id="regMessage" class="text-sm text-gray-400 mt-2"></p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex flex-wrap justify-center gap-2 border-b border-gray-700 pb-2">
             <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="dashboard">📊 Dashboard</button>
-            <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="global">🌐 EfikCoin Global</button>
-            <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="admin" id="adminTabBtn">👑 Admin Panel</button>
-            <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="transactions">📋 Transactions</button>
             <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="staking">🔒 Staking</button>
             <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="airdrop">🪂 Airdrop</button>
+            <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="transactions">📋 Transactions</button>
             <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="contract">📜 Contract</button>
         </div>
 
-        <!-- MAIN DASHBOARD TAB -->
-        <div id="dashboard-tab" class="tab-pane">
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-                <div class="glass-card p-4 text-center">
-                    <p class="text-gray-400 text-sm">ECE PRICE</p>
-                    <p class="text-xl font-bold text-amber-400"><span id="ecePrice">5,068</span></p>
-                    <p id="priceChange" class="text-xs text-green-400">+63.4%</p>
-                </div>
-                <div class="glass-card p-4 text-center">
-                    <p class="text-gray-400 text-sm">MARKET CAP</p>
-                    <p class="text-xl font-bold">$<span id="marketCap">50.7T</span></p>
-                </div>
-                <div class="glass-card p-4 text-center">
-                    <p class="text-gray-400 text-sm">24H VOLUME</p>
-                    <p class="text-xl font-bold">$<span id="volume">5.34</span></p>
-                </div>
-                <div class="glass-card p-4 text-center">
-                    <p class="text-gray-400 text-sm">LIQUIDITY</p>
-                    <p class="text-xl font-bold">$<span id="liquidity">15.30</span></p>
-                </div>
-                <div class="glass-card p-4 text-center">
-                    <p class="text-gray-400 text-sm">BNB PRICE</p>
-                    <p class="text-xl font-bold">$<span id="bnbPrice">628.83</span></p>
-                </div>
-                <div class="glass-card p-4 text-center">
-                    <p class="text-gray-400 text-sm">TAX</p>
-                    <p class="text-xl font-bold">0%</p>
-                </div>
-            </div>
-
-            <!-- Balances -->
-            <div class="grid md:grid-cols-2 gap-4 mb-6">
-                <div class="glass-card p-4 flex justify-between items-center">
-                    <span class="text-gray-400">YOUR ECE BALANCE</span>
-                    <span id="userEceBalance" class="text-2xl font-bold text-amber-400">Connect wallet</span>
-                </div>
-                <div class="glass-card p-4 flex justify-between items-center">
-                    <span class="text-gray-400">BNB BALANCE</span>
-                    <span id="userBnbBalance" class="text-2xl font-bold text-amber-400">-</span>
-                </div>
-            </div>
-
-            <!-- Charts -->
-            <div class="grid md:grid-cols-2 gap-4 mb-6">
-                <div class="glass-card p-4">
-                    <h3 class="font-semibold mb-2 flex items-center gap-2">📈 ECE Price Chart <span class="text-xs text-green-400">LIVE</span></h3>
-                    <canvas id="priceChart" style="width:100%; height:200px;"></canvas>
-                </div>
-                <div class="glass-card p-4">
-                    <h3 class="font-semibold mb-2 flex items-center gap-2">📊 Volume (24h) <span class="text-xs text-green-400">LIVE</span></h3>
-                    <canvas id="volumeChart" style="width:100%; height:200px;"></canvas>
-                </div>
-            </div>
-
-            <!-- Buy/Sell & Quick Links -->
-            <div class="glass-card p-4 mb-6">
-                <div class="flex flex-wrap justify-center gap-4">
-                    <a href="https://pancakeswap.finance/swap?outputCurrency=0x9F8C29E496ECB6C39c221458f211234DfCB233E0&inputCurrency=BNB" target="_blank" class="btn bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-bold text-lg">💰 Buy ECE with BNB</a>
-                    <a href="https://pancakeswap.finance/swap?inputCurrency=0x9F8C29E496ECB6C39c221458f211234DfCB233E0&outputCurrency=BNB" target="_blank" class="btn bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-full font-bold text-lg">💸 Sell ECE for BNB</a>
-                </div>
-                <div class="flex flex-wrap justify-center gap-3 mt-4">
-                    <a href="https://bscscan.com/address/0x9F8C29E496ECB6C39c221458f211234DfCB233E0" target="_blank" class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-full text-sm">BscScan</a>
-                    <a href="https://pancakeswap.finance" target="_blank" class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-full text-sm">PancakeSwap</a>
-                    <a href="https://apespace.io" target="_blank" class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-full text-sm">ApeSpace</a>
-                    <a href="https://team.finance" target="_blank" class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-full text-sm">Team Finance</a>
-                    <a href="https://poocoin.app" target="_blank" class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-full text-sm">PooCoin</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- GLOBAL PORTAL TAB -->
-        <div id="global-tab" class="tab-pane hidden">
-            <div class="glass-card p-6">
-                <h2 class="text-3xl font-bold text-amber-400 mb-4">🌍 EfikCoin Global Portal</h2>
-                <p class="text-gray-300 mb-6">The unified gateway to all EfikCoin projects – Eternal, Legacy, and beyond.</p>
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="bg-gray-800/50 p-5 rounded-xl border border-amber-500/30">
-                        <h3 class="text-xl font-semibold text-amber-300 mb-3">✨ EfikCoin Eternal (active)</h3>
-                        <p class="text-sm text-gray-400 mb-2">Decentralized DeFi ecosystem with staking up to 125% APR, airdrops, live tracking.</p>
-                        <a href="#" onclick="switchToTab('dashboard')" class="btn bg-amber-500 hover:bg-amber-600 text-black px-4 py-2 rounded-full text-sm inline-block">Go to Dashboard →</a>
+        <!-- Tab Contents -->
+        <div id="tabContent">
+            <!-- Dashboard Tab -->
+            <div id="dashboard-tab" class="tab-pane">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="glass-card p-4 text-center">
+                        <p class="text-gray-400 text-sm">ECE Price</p>
+                        <p id="ecePrice" class="text-xl font-bold text-amber-400">--</p>
+                        <p id="priceChange" class="text-xs text-green-400">+0.0%</p>
                     </div>
-                    <div class="bg-gray-800/50 p-5 rounded-xl border border-gray-700">
-                        <h3 class="text-xl font-semibold text-gray-300 mb-3">🏛️ EfikCoin Legacy</h3>
-                        <p class="text-sm text-gray-400 mb-2">Original ecosystem (historical). For reference only – ECE is the current standard.</p>
-                        <a href="https://efikcoinofficialecosystem.github.io/Efikcoin.ecosystem/" target="_blank" class="btn bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-full text-sm inline-block">Visit Legacy</a>
+                    <div class="glass-card p-4 text-center">
+                        <p class="text-gray-400 text-sm">Market Cap</p>
+                        <p id="marketCap" class="text-xl font-bold">--</p>
+                    </div>
+                    <div class="glass-card p-4 text-center">
+                        <p class="text-gray-400 text-sm">24h Volume</p>
+                        <p id="volume" class="text-xl font-bold">--</p>
+                    </div>
+                    <div class="glass-card p-4 text-center">
+                        <p class="text-gray-400 text-sm">Liquidity</p>
+                        <p id="liquidity" class="text-xl font-bold">--</p>
                     </div>
                 </div>
-                <div class="mt-6 text-center text-gray-400 text-sm">
-                    🔗 ECE contract: <span class="font-mono text-xs">0x9F8C29E496ECB6C39c221458f211234DfCB233E0</span>
+                <div class="glass-card p-5">
+                    <h3 class="text-xl font-bold mb-2">Price Chart (DexScreener)</h3>
+                    <iframe src="https://dexscreener.com/bsc/0x9f8c29e496ecb6c39c221458f211234dfcb233e0?embed=1" width="100%" height="400" style="border: none; border-radius: 1rem;"></iframe>
                 </div>
             </div>
-        </div>
 
-        <!-- ADMIN PANEL TAB (visible only to owner) -->
-        <div id="admin-tab" class="tab-pane hidden admin-only">
-            <div class="glass-card p-6 border-2 border-amber-500">
-                <h2 class="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2">
-                    <span class="text-3xl">👑</span> Founder's Command Center
-                </h2>
-                <div class="grid md:grid-cols-3 gap-4 mb-6">
-                    <div class="bg-black/40 p-4 rounded-xl">
-                        <p class="text-gray-400 text-sm">Contract Owner</p>
-                        <p id="adminOwner" class="font-mono text-xs break-all">0xc5ad5c...</p>
+            <!-- Staking Tab -->
+            <div id="staking-tab" class="tab-pane hidden">
+                <div class="glass-card p-5">
+                    <h2 class="text-2xl font-bold mb-4">🔒 Staking Pool</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <p class="text-gray-400">Your Staked: <span id="userStaked" class="text-white font-bold">0 ECE</span></p>
+                            <p class="text-gray-400">Total Staked: <span id="totalStaked" class="text-white font-bold">0 ECE</span></p>
+                            <p class="text-gray-400">APR: <span class="text-amber-400">125% – 750%</span> (by lock period)</p>
+                        </div>
+                        <div>
+                            <select id="lockPeriod" class="bg-gray-800 border border-gray-600 rounded px-3 py-2 w-full mb-2">
+                                <option value="30">30 days – 125% APR</option>
+                                <option value="60">60 days – 180% APR</option>
+                                <option value="90">90 days – 250% APR</option>
+                                <option value="180">180 days – 400% APR</option>
+                                <option value="365">365 days – 750% APR</option>
+                            </select>
+                            <input type="number" id="stakeAmount" placeholder="Amount in ECE" class="bg-gray-800 border border-gray-600 rounded px-3 py-2 w-full mb-2">
+                            <div class="flex gap-2">
+                                <button id="stakeBtn" class="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex-1">Stake</button>
+                                <button id="unstakeBtn" class="btn bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex-1">Unstake</button>
+                                <button id="claimRewardsBtn" class="btn bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex-1">Claim</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="bg-black/40 p-4 rounded-xl">
-                        <p class="text-gray-400 text-sm">Your ECE</p>
-                        <p id="adminEceBalance" class="text-xl font-bold text-amber-400">-</p>
-                    </div>
-                    <div class="bg-black/40 p-4 rounded-xl">
-                        <p class="text-gray-400 text-sm">Total Supply</p>
-                        <p id="adminTotalSupply" class="text-xl font-bold">-</p>
-                    </div>
-                </div>
-                <div class="grid md:grid-cols-4 gap-3">
-                    <button id="adminMint" class="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">🔨 Mint</button>
-                    <button id="adminAirdrop" class="btn bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">📦 Airdrop</button>
-                    <button id="adminSetPair" class="btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">🔗 Set Pair</button>
-                    <button id="adminCollectFees" class="btn bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg">💰 Collect Fees</button>
-                </div>
-                <div class="mt-6">
-                    <h3 class="font-semibold text-amber-300 mb-2">📢 Broadcast to Community</h3>
-                    <textarea id="broadcastMsg" rows="2" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white" placeholder="Announcement..."></textarea>
-                    <button id="adminBroadcast" class="btn bg-amber-500 hover:bg-amber-600 text-black px-4 py-2 rounded-lg mt-2">Publish</button>
-                </div>
-                <div class="mt-4 text-xs text-gray-500">
-                    ⚡ All admin actions are logged on-chain. Security monitoring active.
                 </div>
             </div>
-        </div>
 
-        <!-- Other tabs (placeholders with live skeleton) -->
-        <div id="transactions-tab" class="tab-pane hidden">
-            <div class="glass-card p-5">
-                <h2 class="text-xl font-bold mb-4">📋 Live Transactions</h2>
-                <p class="text-gray-400">Full transaction history – coming live in Phase 2.</p>
+            <!-- Airdrop Tab (owner only) -->
+            <div id="airdrop-tab" class="tab-pane hidden owner-only">
+                <div class="glass-card p-5">
+                    <h2 class="text-2xl font-bold mb-4">🪂 Airdrop Manager</h2>
+                    <p class="text-sm text-gray-400 mb-3">Enter addresses and amounts (one per line, comma separated):</p>
+                    <textarea id="airdropList" rows="5" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono" placeholder="0x123...,1000&#10;0x456...,2000"></textarea>
+                    <div class="flex gap-3 mt-4">
+                        <button id="airdropBtn" class="btn bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg">Send Airdrop</button>
+                        <label class="btn bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg cursor-pointer">
+                            📁 Upload CSV
+                            <input type="file" id="airdropFile" accept=".csv" class="hidden">
+                        </label>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div id="staking-tab" class="tab-pane hidden">
-            <div class="glass-card p-5">
-                <h2 class="text-xl font-bold mb-4">🔒 Staking Pool</h2>
-                <p class="text-gray-400">Stake ECE and earn up to 125% APR. Lock periods: 30–365 days.</p>
-                <div class="mt-3 p-3 bg-amber-500/10 rounded-lg">Total staked: <span id="totalStaked">0 ECE</span></div>
-            </div>
-        </div>
-        <div id="airdrop-tab" class="tab-pane hidden">
-            <div class="glass-card p-5">
-                <h2 class="text-xl font-bold mb-4">🪂 Airdrop Manager</h2>
-                <p class="text-gray-400">Bulk send ECE via CSV – coming soon.</p>
-            </div>
-        </div>
-        <div id="contract-tab" class="tab-pane hidden">
-            <div class="glass-card p-5">
-                <h2 class="text-xl font-bold mb-4">📜 Contract Interface</h2>
-                <p class="text-gray-400">Direct read/write access – integrated.</p>
-            </div>
-        </div>
 
-        <!-- Social Hub -->
-        <div class="glass-card p-5">
-            <div id="globalMessage" class="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl mb-4">
-                <p id="displayMessage" class="text-gray-300">Welcome to the complete EfikCoin ecosystem. Join our global community:</p>
+            <!-- Transactions Tab -->
+            <div id="transactions-tab" class="tab-pane hidden">
+                <div class="glass-card p-5">
+                    <h2 class="text-2xl font-bold mb-4">📋 Recent Transactions</h2>
+                    <input type="text" id="txSearch" placeholder="Filter by address" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 w-full mb-3">
+                    <div id="txList" class="space-y-2 max-h-96 overflow-y-auto">
+                        <!-- Transaction rows will be inserted here -->
+                    </div>
+                </div>
             </div>
-            <div class="flex flex-wrap justify-center gap-4">
-                <a href="https://discord.gg/Ub4vvudcV" target="_blank" class="bg-gray-800 hover:bg-gray-700 p-4 rounded-xl text-center transition w-28">
-                    <span class="text-3xl">💬</span>
-                    <p class="font-semibold mt-2">Discord</p>
-                </a>
-                <a href="https://t.me/efikcoinofficialecosystem" target="_blank" class="bg-gray-800 hover:bg-gray-700 p-4 rounded-xl text-center transition w-28">
-                    <span class="text-3xl">📱</span>
-                    <p class="font-semibold mt-2">Telegram</p>
-                </a>
-                <a href="mailto:efikcoinofficialecosystem@gmail.com" class="bg-gray-800 hover:bg-gray-700 p-4 rounded-xl text-center transition w-28">
-                    <span class="text-3xl">📧</span>
-                    <p class="font-semibold mt-2">Email</p>
-                </a>
-                <a href="#" onclick="window.open('https://twitter.com/efikcoin', '_blank')" class="bg-gray-800 hover:bg-gray-700 p-4 rounded-xl text-center transition w-28">
-                    <span class="text-3xl">🐦</span>
-                    <p class="font-semibold mt-2">Twitter</p>
-                </a>
+
+            <!-- Contract Interaction Tab -->
+            <div id="contract-tab" class="tab-pane hidden">
+                <div class="glass-card p-5">
+                    <h2 class="text-2xl font-bold mb-4">📜 Contract Interface</h2>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="font-semibold">Read Functions</h3>
+                            <button class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded mt-2 text-sm w-full" onclick="readName()">name()</button>
+                            <button class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded mt-2 text-sm w-full" onclick="readSymbol()">symbol()</button>
+                            <button class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded mt-2 text-sm w-full" onclick="readTotalSupply()">totalSupply()</button>
+                            <button class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded mt-2 text-sm w-full" onclick="readDecimals()">decimals()</button>
+                            <button class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded mt-2 text-sm w-full" onclick="readOwner()">owner()</button>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">Write Functions (requires wallet)</h3>
+                            <button id="writeTransfer" class="btn bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded mt-2 text-sm w-full">transfer()</button>
+                            <button id="writeApprove" class="btn bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded mt-2 text-sm w-full">approve()</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Footer -->
         <div class="text-center text-gray-500 text-sm pt-4 border-t border-gray-800">
-            © 2025 EfikCoin · All three ecosystems · Built for humanity · <span class="text-amber-400">Coin is life</span>
+            © 2026 EfikCoin Eternal · Live on BSC · Built with ❤️ for humanity
         </div>
     </div>
 
     <script>
-        (function() {
-            // ========== CONFIG ==========
-            const CONTRACT_ADDRESS = "0x9F8C29E496ECB6C39c221458f211234DfCB233E0";
-            const OWNER_ADDRESS = "0xc5ad5cfcf81ad63a94227334b898eafce6b27cca".toLowerCase();
-            const POOL_ADDRESS = "0x7fabe1cc407f0e01c3cdf5cc05744f8d98bc70b6";
-            const FEE_COLLECTOR = "0xc5ad5cfcf81ad63a94227334b898eafce6b27cca";
-            const ABI = [
-                "function name() view returns (string)",
-                "function symbol() view returns (string)",
-                "function decimals() view returns (uint8)",
-                "function totalSupply() view returns (uint256)",
-                "function balanceOf(address) view returns (uint256)",
-                "function owner() view returns (address)",
-                "function mint(address to, uint256 amount) external",
-                "function transferOwnership(address newOwner) external"
-            ];
+        // ========== CONFIG ==========
+        const CONTRACT_ADDRESS = "0x9F8C29E496ECB6C39c221458f211234DfCB233E0";
+        const OWNER_ADDRESS = "0xc5ad5cfcf81ad63a94227334b898eafce6b27cca".toLowerCase();
+        const BSC_RPC = "https://bsc-dataseed.binance.org/";
+        const BSC_API_KEY = "YourBscScanApiKey";  // get free from bscscan.com
 
-            // ========== STATE ==========
-            let provider, signer, contract, userAddress;
-            let web3Modal;
-            let isOwner = false;
-            let priceChart, volumeChart;
+        // Full ABI (shortened for readability – include all functions your contract has)
+        const ABI = [
+            "function name() view returns (string)",
+            "function symbol() view returns (string)",
+            "function decimals() view returns (uint8)",
+            "function totalSupply() view returns (uint256)",
+            "function balanceOf(address) view returns (uint256)",
+            "function transfer(address to, uint256 amount) returns (bool)",
+            "function approve(address spender, uint256 amount) returns (bool)",
+            "function allowance(address owner, address spender) view returns (uint256)",
+            "function owner() view returns (address)",
+            "function mint(address to, uint256 amount) external",
+            "function airdrop(address[] calldata recipients, uint256[] calldata amounts) external",
+            "function setPairAddress(address _pair) external",
+            "function withdrawFees() external",
+            "function stake(uint256 amount, uint256 lockPeriod) external",
+            "function unstake(uint256 amount) external",
+            "function claimRewards() external",
+            "function stakedBalance(address) view returns (uint256)",
+            "function totalStaked() view returns (uint256)"
+        ];
 
-            // ========== DOM ==========
-            const connectionIndicator = document.getElementById('connectionIndicator');
-            const connectionStatus = document.getElementById('connectionStatus');
-            const networkStatus = document.getElementById('networkStatus');
-            const securityBadge = document.getElementById('securityBadge');
-            const connectBtn = document.getElementById('connectBtn');
-            const switchNetworkBtn = document.getElementById('switchNetworkBtn');
-            const userEceBalance = document.getElementById('userEceBalance');
-            const userBnbBalance = document.getElementById('userBnbBalance');
-            const adminTabBtn = document.getElementById('adminTabBtn');
-            const adminPanel = document.getElementById('admin-tab');
-            const adminOwner = document.getElementById('adminOwner');
-            const adminEceBalance = document.getElementById('adminEceBalance');
-            const adminTotalSupply = document.getElementById('adminTotalSupply');
-            const broadcastMsg = document.getElementById('broadcastMsg');
-            const displayMessage = document.getElementById('displayMessage');
-            const securityAlert = document.getElementById('securityAlert');
-            const ecePriceSpan = document.getElementById('ecePrice');
-            const priceChangeSpan = document.getElementById('priceChange');
-            const marketCapSpan = document.getElementById('marketCap');
-            const volumeSpan = document.getElementById('volume');
-            const liquiditySpan = document.getElementById('liquidity');
-            const bnbPriceSpan = document.getElementById('bnbPrice');
-            const totalStakedSpan = document.getElementById('totalStaked');
+        // ========== STATE ==========
+        let provider, signer, contract, userAddress;
+        let web3Modal;
+        let isOwner = false;
 
-            // ========== INIT WEB3MODAL ==========
-            function initWeb3Modal() {
-                const providerOptions = {
-                    walletconnect: {
-                        package: WalletConnectProvider.default,
-                        options: { rpc: { 56: "https://bsc-dataseed.binance.org/" } }
-                    }
-                };
-                web3Modal = new Web3Modal.default({ cacheProvider: true, providerOptions, theme: "dark" });
-            }
+        // ========== DOM ELEMENTS ==========
+        // (declared after init)
 
-            // ========== CONNECT ==========
-            async function connectWallet() {
-                try {
-                    const instance = await web3Modal.connect();
-                    provider = new ethers.providers.Web3Provider(instance);
-                    signer = provider.getSigner();
-                    userAddress = await signer.getAddress();
-                    connectionIndicator.className = 'w-3 h-3 rounded-full bg-green-500';
-                    connectionStatus.innerText = 'Connected';
-                    securityBadge.classList.remove('hidden');
+        // ========== INIT ==========
+        function init() {
+            // Connect UI
+            document.getElementById('connectBtn').addEventListener('click', connectWallet);
+            document.getElementById('switchNetworkBtn').addEventListener('click', switchNetwork);
+            document.getElementById('networkSelector').addEventListener('change', switchNetwork);
+            document.getElementById('refreshBalance').addEventListener('click', updateUI);
+            document.getElementById('registerBtn').addEventListener('click', registerClient);
 
-                    const network = await provider.getNetwork();
-                    if (network.chainId !== 56) {
-                        await switchToBSC();
-                    } else {
-                        networkStatus.innerText = '✅ BSC Mainnet';
-                    }
+            // Admin buttons
+            document.getElementById('adminMint').addEventListener('click', mintTokens);
+            document.getElementById('adminSetPair').addEventListener('click', setPair);
+            document.getElementById('adminWithdrawFees').addEventListener('click', withdrawFees);
+            document.getElementById('adminBroadcast').addEventListener('click', broadcastMessage);
 
-                    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-                    await updateUI();
-                    setupListeners(instance);
-                    checkOwner();
-                    startLiveUpdates();
-                } catch (e) {
-                    console.error(e);
-                    alert('Connection failed: ' + e.message);
-                }
-            }
+            // Staking
+            document.getElementById('stakeBtn').addEventListener('click', stake);
+            document.getElementById('unstakeBtn').addEventListener('click', unstake);
+            document.getElementById('claimRewardsBtn').addEventListener('click', claimRewards);
 
-            async function switchToBSC() {
-                try {
-                    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x38' }] });
-                } catch (e) {
-                    if (e.code === 4902) {
-                        await window.ethereum.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [{
-                                chainId: '0x38',
-                                chainName: 'BNB Smart Chain',
-                                nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                                rpcUrls: ['https://bsc-dataseed.binance.org/']
-                            }]
-                        });
-                    }
-                }
-            }
+            // Airdrop
+            document.getElementById('airdropBtn').addEventListener('click', airdrop);
+            document.getElementById('airdropFile').addEventListener('change', handleFileUpload);
 
-            async function updateUI() {
-                if (!contract || !userAddress) return;
-                try {
-                    const decimals = await contract.decimals();
-                    const balance = await contract.balanceOf(userAddress);
-                    userEceBalance.innerText = ethers.utils.formatUnits(balance, decimals) + ' ECE';
-
-                    const bnbBal = await provider.getBalance(userAddress);
-                    userBnbBalance.innerText = ethers.utils.formatEther(bnbBal) + ' BNB';
-
-                    // Admin-only update
-                    if (isOwner) {
-                        const totalSupply = await contract.totalSupply();
-                        adminTotalSupply.innerText = ethers.utils.formatUnits(totalSupply, decimals) + ' ECE';
-                        const ownerBal = await contract.balanceOf(OWNER_ADDRESS);
-                        adminEceBalance.innerText = ethers.utils.formatUnits(ownerBal, decimals) + ' ECE';
-                        adminOwner.innerText = OWNER_ADDRESS;
-                    }
-                } catch (e) { console.error(e); }
-            }
-
-            async function fetchLiveMarketData() {
-                try {
-                    // Simulated live updates – replace with real API calls to PancakeSwap subgraph
-                    const randomPrice = (5000 + Math.random() * 500).toFixed(2);
-                    ecePriceSpan.innerText = randomPrice;
-                    priceChangeSpan.innerText = '+' + (60 + Math.random() * 10).toFixed(1) + '%';
-                    marketCapSpan.innerText = (Number(randomPrice) * 1e9 / 1e12).toFixed(1) + 'T';
-                    volumeSpan.innerText = (5 + Math.random() * 3).toFixed(2);
-                    liquiditySpan.innerText = (15 + Math.random() * 5).toFixed(2);
-                    bnbPriceSpan.innerText = (620 + Math.random() * 20).toFixed(2);
-                    totalStakedSpan.innerText = (120000 + Math.random() * 5000).toFixed(0) + ' ECE';
-
-                    // Update charts with new data point
-                    if (priceChart) {
-                        priceChart.data.datasets[0].data.push(Number(randomPrice));
-                        priceChart.data.datasets[0].data.shift();
-                        priceChart.update();
-                    }
-                    if (volumeChart) {
-                        volumeChart.data.datasets[0].data.push(Math.random() * 3);
-                        volumeChart.data.datasets[0].data.shift();
-                        volumeChart.update();
-                    }
-                } catch (e) {}
-            }
-
-            function setupListeners(instance) {
-                instance.on('accountsChanged', (accounts) => {
-                    if (accounts.length === 0) disconnect();
-                    else { userAddress = accounts[0]; updateUI(); checkOwner(); }
-                });
-                instance.on('chainChanged', () => window.location.reload());
-            }
-
-            function disconnect() {
-                userAddress = null; contract = null; isOwner = false;
-                connectionIndicator.className = 'w-3 h-3 rounded-full bg-red-500';
-                connectionStatus.innerText = 'Not connected';
-                networkStatus.innerText = '';
-                securityBadge.classList.add('hidden');
-                userEceBalance.innerText = 'Connect wallet';
-                userBnbBalance.innerText = '-';
-                adminPanel.classList.add('hidden');
-                adminTabBtn.classList.add('hidden');
-                web3Modal.clearCachedProvider();
-            }
-
-            async function checkOwner() {
-                if (!contract || !userAddress) return;
-                try {
-                    const owner = await contract.owner();
-                    isOwner = (userAddress.toLowerCase() === owner.toLowerCase());
-                    if (isOwner) {
-                        adminPanel.classList.remove('hidden');
-                        adminTabBtn.classList.remove('hidden');
-                        // Security monitoring [citation:5][citation:8]
-                        securityAlert.style.display = 'block';
-                        securityAlert.innerText = '🔐 Admin session active – all actions monitored.';
-                    } else {
-                        adminPanel.classList.add('hidden');
-                        adminTabBtn.classList.add('hidden');
-                        securityAlert.style.display = 'none';
-                    }
-                } catch (e) {}
-            }
-
-            function startLiveUpdates() {
-                fetchLiveMarketData();
-                setInterval(fetchLiveMarketData, 30000); // every 30s
-            }
+            // Transaction search
+            document.getElementById('txSearch').addEventListener('input', filterTransactions);
 
             // Tab switching
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -465,90 +295,332 @@
                     btn.classList.add('tab-active');
                     const tabId = btn.dataset.tab;
                     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
-                    const targetPane = document.getElementById(tabId + '-tab');
-                    if (targetPane) targetPane.classList.remove('hidden');
+                    document.getElementById(tabId + '-tab').classList.remove('hidden');
                 });
             });
-            window.switchToTab = (tab) => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
-                document.querySelector(`[data-tab="${tab}"]`)?.classList.add('tab-active');
-                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
-                document.getElementById(tab + '-tab')?.classList.remove('hidden');
-            };
+            // Activate dashboard by default
+            document.querySelector('[data-tab="dashboard"]').classList.add('tab-active');
 
-            // Admin actions
-            document.getElementById('adminMint').addEventListener('click', () => alert('Mint UI – implement with amount & address'));
-            document.getElementById('adminAirdrop').addEventListener('click', () => alert('Airdrop UI – CSV upload'));
-            document.getElementById('adminSetPair').addEventListener('click', () => alert('Set pair address'));
-            document.getElementById('adminCollectFees').addEventListener('click', () => alert('Fees collected to ' + FEE_COLLECTOR));
-            document.getElementById('adminBroadcast').addEventListener('click', () => {
-                const msg = broadcastMsg.value.trim();
-                if (msg) {
-                    localStorage.setItem('efikMessage', msg);
-                    displayMessage.innerText = msg;
-                    broadcastMsg.value = '';
+            initWeb3Modal();
+            if (web3Modal.cachedProvider) connectWallet();
+        }
+
+        // ========== WEB3MODAL ==========
+        function initWeb3Modal() {
+            const providerOptions = {
+                walletconnect: {
+                    package: WalletConnectProvider.default,
+                    options: { rpc: { 56: BSC_RPC, 1: "https://mainnet.infura.io/v3/...", 137: "https://polygon-rpc.com" } }
                 }
-            });
+            };
+            web3Modal = new Web3Modal.default({ cacheProvider: true, providerOptions, theme: "dark" });
+        }
 
-            // Load saved broadcast
-            const savedMsg = localStorage.getItem('efikMessage');
-            if (savedMsg) displayMessage.innerText = savedMsg;
+        // ========== CONNECT ==========
+        async function connectWallet() {
+            try {
+                const instance = await web3Modal.connect();
+                provider = new ethers.providers.Web3Provider(instance);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
 
-            // Init charts
-            const priceCtx = document.getElementById('priceChart').getContext('2d');
-            priceChart = new Chart(priceCtx, {
-                type: 'line',
-                data: {
-                    labels: Array.from({length:20}, (_,i)=>i+':00'),
-                    datasets: [{
-                        label: 'ECE Price',
-                        data: Array(20).fill(0).map(() => 5000+Math.random()*500),
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245,158,11,0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#333' } } } }
-            });
-            const volCtx = document.getElementById('volumeChart').getContext('2d');
-            volumeChart = new Chart(volCtx, {
-                type: 'bar',
-                data: {
-                    labels: Array.from({length:20}, (_,i)=>i+':00'),
-                    datasets: [{
-                        label: 'Volume',
-                        data: Array(20).fill(0).map(() => Math.random()*3),
-                        backgroundColor: '#f59e0b'
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#333' } } } }
-            });
+                document.getElementById('connectionIndicator').className = 'w-3 h-3 rounded-full bg-green-500';
+                document.getElementById('connectionStatus').innerText = 'Connected';
+                document.getElementById('userInfo').classList.remove('hidden');
 
-            // Event listeners
-            connectBtn.addEventListener('click', connectWallet);
-            switchNetworkBtn.addEventListener('click', switchToBSC);
+                const network = await provider.getNetwork();
+                if (network.chainId !== 56) {
+                    document.getElementById('networkStatus').innerText = '❌ Wrong network';
+                } else {
+                    document.getElementById('networkStatus').innerText = '✅ BSC Mainnet';
+                }
 
-            // Auto-connect
-            window.addEventListener('load', () => {
-                initWeb3Modal();
-                if (web3Modal.cachedProvider) connectWallet();
-                document.querySelector('[data-tab="dashboard"]').classList.add('tab-active');
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+                await updateUI();
+                checkOwner();
+                setupListeners(instance);
+            } catch (err) {
+                alert('Connection failed: ' + err.message);
+            }
+        }
+
+        async function switchNetwork() {
+            const targetChain = parseInt(document.getElementById('networkSelector').value);
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x' + targetChain.toString(16) }]
+                });
+            } catch (e) {
+                if (e.code === 4902) {
+                    // network not added – add logic here
+                }
+            }
+        }
+
+        function setupListeners(instance) {
+            instance.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) disconnect();
+                else { userAddress = accounts[0]; updateUI(); checkOwner(); }
             });
-        })();
+            instance.on('chainChanged', () => window.location.reload());
+        }
+
+        function disconnect() {
+            userAddress = null; contract = null; isOwner = false;
+            document.getElementById('connectionIndicator').className = 'w-3 h-3 rounded-full bg-red-500';
+            document.getElementById('connectionStatus').innerText = 'Not connected';
+            document.getElementById('networkStatus').innerText = '';
+            document.getElementById('userInfo').classList.add('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            web3Modal.clearCachedProvider();
+        }
+
+        // ========== UPDATE UI ==========
+        async function updateUI() {
+            if (!contract || !userAddress) return;
+            try {
+                const decimals = await contract.decimals();
+                const balance = await contract.balanceOf(userAddress);
+                document.getElementById('userBalance').innerText = ethers.utils.formatUnits(balance, decimals) + ' ECE';
+
+                const bnbBalance = await provider.getBalance(userAddress);
+                document.getElementById('bnbBalance').innerText = ethers.utils.formatEther(bnbBalance) + ' BNB';
+                document.getElementById('userAddress').innerText = userAddress;
+
+                const staked = await contract.stakedBalance(userAddress);
+                document.getElementById('userStaked').innerText = ethers.utils.formatUnits(staked, decimals) + ' ECE';
+                const totalStaked = await contract.totalStaked();
+                document.getElementById('totalStaked').innerText = ethers.utils.formatUnits(totalStaked, decimals) + ' ECE';
+
+                // fetch price from DexScreener API or use mock
+                // ...
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function checkOwner() {
+            if (!contract || !userAddress) return;
+            try {
+                const owner = await contract.owner();
+                isOwner = (userAddress.toLowerCase() === owner.toLowerCase());
+                if (isOwner) {
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    document.querySelectorAll('.owner-only').forEach(el => el.classList.remove('hidden'));
+                } else {
+                    document.getElementById('adminPanel').classList.add('hidden');
+                    document.querySelectorAll('.owner-only').forEach(el => el.classList.add('hidden'));
+                }
+            } catch (e) { console.warn('owner check failed', e); }
+        }
+
+        // ========== REGISTRATION ==========
+        function registerClient() {
+            const email = document.getElementById('regEmail').value.trim();
+            if (!email) return;
+            // Store in localStorage (demo only – replace with backend call)
+            let users = JSON.parse(localStorage.getItem('efikUsers') || '[]');
+            if (!users.includes(email)) {
+                users.push(email);
+                localStorage.setItem('efikUsers', JSON.stringify(users));
+                document.getElementById('regMessage').innerText = '✅ Registered successfully!';
+            } else {
+                document.getElementById('regMessage').innerText = 'ℹ️ Already registered.';
+            }
+            document.getElementById('regEmail').value = '';
+        }
+
+        // ========== ADMIN ACTIONS ==========
+        async function mintTokens() {
+            if (!isOwner) return alert('Not owner');
+            const to = prompt('Recipient address:');
+            const amount = prompt('Amount in ECE:');
+            if (!to || !amount) return;
+            try {
+                const decimals = await contract.decimals();
+                const tx = await contract.mint(to, ethers.utils.parseUnits(amount, decimals));
+                await tx.wait();
+                alert('Mint successful');
+                updateUI();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function setPair() {
+            if (!isOwner) return;
+            const pair = prompt('Enter new pair address:');
+            if (!pair) return;
+            try {
+                const tx = await contract.setPairAddress(pair);
+                await tx.wait();
+                alert('Pair set');
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        async function withdrawFees() {
+            if (!isOwner) return;
+            try {
+                const tx = await contract.withdrawFees();
+                await tx.wait();
+                alert('Fees withdrawn');
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        function broadcastMessage() {
+            const msg = document.getElementById('broadcastMessage').value.trim();
+            if (msg) {
+                localStorage.setItem('efikAnnouncement', msg);
+                alert('Announcement saved!');
+            }
+        }
+
+        // ========== STAKING ==========
+        async function stake() {
+            if (!contract) return alert('Connect wallet');
+            const amount = document.getElementById('stakeAmount').value.trim();
+            const lockPeriod = document.getElementById('lockPeriod').value;
+            if (!amount) return;
+            try {
+                const decimals = await contract.decimals();
+                const tx = await contract.stake(ethers.utils.parseUnits(amount, decimals), lockPeriod);
+                await tx.wait();
+                alert('Staked!');
+                updateUI();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        async function unstake() {
+            if (!contract) return;
+            const amount = document.getElementById('stakeAmount').value.trim();
+            if (!amount) return;
+            try {
+                const decimals = await contract.decimals();
+                const tx = await contract.unstake(ethers.utils.parseUnits(amount, decimals));
+                await tx.wait();
+                alert('Unstaked');
+                updateUI();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        async function claimRewards() {
+            if (!contract) return;
+            try {
+                const tx = await contract.claimRewards();
+                await tx.wait();
+                alert('Rewards claimed');
+                updateUI();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // ========== AIRDROP ==========
+        async function airdrop() {
+            if (!isOwner) return alert('Only owner');
+            const text = document.getElementById('airdropList').value.trim();
+            if (!text) return;
+            const lines = text.split('\n');
+            const recipients = [];
+            const amounts = [];
+            const decimals = await contract.decimals();
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                const parts = line.split(',');
+                if (parts.length !== 2) { alert('Invalid line: ' + line); return; }
+                const addr = parts[0].trim();
+                if (!ethers.utils.isAddress(addr)) { alert('Invalid address: ' + addr); return; }
+                const amt = ethers.utils.parseUnits(parts[1].trim(), decimals);
+                recipients.push(addr);
+                amounts.push(amt);
+            }
+            try {
+                const tx = await contract.airdrop(recipients, amounts);
+                await tx.wait();
+                alert('Airdrop successful');
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('airdropList').value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+
+        // ========== TRANSACTIONS (BscScan) ==========
+        async function loadTransactions() {
+            const address = document.getElementById('txSearch').value.trim() || userAddress;
+            if (!address) return;
+            try {
+                const url = `https://api.bscscan.com/api?module=account&action=tokentx&contractaddress=${CONTRACT_ADDRESS}&address=${address}&sort=desc&apikey=${BSC_API_KEY}`;
+                const response = await axios.get(url);
+                const txs = response.data.result.slice(0, 20);
+                const listDiv = document.getElementById('txList');
+                listDiv.innerHTML = '';
+                txs.forEach(tx => {
+                    const date = new Date(tx.timeStamp * 1000).toLocaleString();
+                    listDiv.innerHTML += `<div class="bg-gray-800 p-2 rounded text-xs"><span class="text-amber-400">${tx.hash.slice(0,10)}...</span> ${tx.from.slice(0,6)} → ${tx.to.slice(0,6)}: ${ethers.utils.formatUnits(tx.value, tx.tokenDecimal)} ECE</div>`;
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function filterTransactions() {
+            loadTransactions();
+        }
+
+        // ========== READ FUNCTIONS ==========
+        async function readName() { alert(await contract.name()); }
+        async function readSymbol() { alert(await contract.symbol()); }
+        async function readTotalSupply() { alert(ethers.utils.formatUnits(await contract.totalSupply(), await contract.decimals()) + ' ECE'); }
+        async function readDecimals() { alert(await contract.decimals()); }
+        async function readOwner() { alert(await contract.owner()); }
+
+        // ========== WRITE FUNCTIONS ==========
+        document.getElementById('writeTransfer').addEventListener('click', async () => {
+            const to = prompt('To:');
+            const amount = prompt('Amount:');
+            if (!to || !amount) return;
+            try {
+                const decimals = await contract.decimals();
+                const tx = await contract.transfer(to, ethers.utils.parseUnits(amount, decimals));
+                await tx.wait();
+                alert('Transfer successful');
+                updateUI();
+            } catch (err) { alert(err.message); }
+        });
+
+        document.getElementById('writeApprove').addEventListener('click', async () => {
+            const spender = prompt('Spender:');
+            const amount = prompt('Amount:');
+            if (!spender || !amount) return;
+            try {
+                const decimals = await contract.decimals();
+                const tx = await contract.approve(spender, ethers.utils.parseUnits(amount, decimals));
+                await tx.wait();
+                alert('Approved');
+            } catch (err) { alert(err.message); }
+        });
+
+        // ========== ON LOAD ==========
+        window.addEventListener('load', init);
     </script>
 </body>
-</html>
-<style>#dexscreener-embed{position:relative;width:100%;padding-bottom:125%;}@media(min-width:1400px){#dexscreener-embed{padding-bottom:65%;}}#dexscreener-embed iframe{position:absolute;width:100%;height:100%;top:0;left:0;border:0;}</style><div id="dexscreener-embed"><iframe src="https://dexscreener.com/bsc/0x7FAbe1cc407f0e01c3cdF5Cc05744f8D98bC70B6?embed=1&loadChartSettings=0&chartLeftToolbar=0&chartDefaultOnMobile=1&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15"></iframe></div>
-<head>
-  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LecB4ksAAAAAFj4NK3iUDhpKywP_7xzq7nxrjeZ"></script>
-  <!-- Your code -->
-</head>{"out": "Hosted deployment is only available for Plus or Pro members", "status": "error", "deployment_url": null, "production_url": null, "database_name": null, "project_name": null, "data": null}
-<script>
-  function onClick(e) {
-    e.preventDefault();
-    grecaptcha.enterprise.ready(async () => {
-      const token = await grecaptcha.enterprise.execute('6LecB4ksAAAAAFj4NK3iUDhpKywP_7xzq7nxrjeZ', {action: 'LOGIN'});
-    });
-  }
-</script>
+    </html>

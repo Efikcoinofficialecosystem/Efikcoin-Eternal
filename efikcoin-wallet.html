@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EfikCoin Eternal Wallet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white p-4">
+    <div class="max-w-md mx-auto">
+        <div class="text-center mb-6">
+            <img src="https://raw.githubusercontent.com/Efikcoinofficialecosystem/efikcoin-eternal/main/1772019882787.png" class="w-20 h-20 mx-auto rounded-full">
+            <h1 class="text-3xl font-bold text-amber-400">EfikCoin Eternal</h1>
+            <p class="text-gray-400">Real Wallet · Real Infrastructure</p>
+        </div>
+
+        <!-- Auth Forms -->
+        <div id="authContainer" class="bg-gray-800 p-6 rounded-xl space-y-4">
+            <h2 class="text-xl font-bold text-center mb-4">Sign Up / Login</h2>
+            
+            <input type="email" id="email" placeholder="Email" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2">
+            <input type="password" id="password" placeholder="Password" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2">
+            
+            <button id="signupBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-2 rounded">Sign Up</button>
+            <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded">Log In</button>
+            
+            <div id="authMessage" class="text-sm text-center"></div>
+        </div>
+
+        <!-- Wallet Dashboard (hidden until logged in) -->
+        <div id="walletDashboard" class="hidden bg-gray-800 p-6 rounded-xl space-y-4">
+            <h2 class="text-xl font-bold text-amber-400 mb-4">Your Wallet</h2>
+            
+            <div class="bg-gray-700 p-3 rounded">
+                <p class="text-gray-400 text-xs">Your Address</p>
+                <p id="walletAddress" class="font-mono text-sm break-all"></p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-gray-700 p-3 rounded">
+                    <p class="text-gray-400 text-xs">ECE Balance</p>
+                    <p id="eceBalance" class="text-xl font-bold text-amber-400">0</p>
+                </div>
+                <div class="bg-gray-700 p-3 rounded">
+                    <p class="text-gray-400 text-xs">BNB Balance</p>
+                    <p id="bnbBalance" class="text-xl font-bold text-amber-400">0</p>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-600 pt-4">
+                <h3 class="font-bold mb-2">Send ECE</h3>
+                <input type="text" id="sendTo" placeholder="Recipient Address" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 mb-2">
+                <input type="text" id="sendAmount" placeholder="Amount" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 mb-2">
+                <button id="sendBtn" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded">Send</button>
+            </div>
+            
+            <button id="logoutBtn" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded mt-2">Logout</button>
+            
+            <div id="walletMessage" class="text-sm text-center"></div>
+        </div>
+
+        <!-- Admin Panel (only visible if you log in with admin email) -->
+        <div id="adminPanel" class="hidden bg-gray-800 p-6 rounded-xl mt-4 border-2 border-amber-500">
+            <h2 class="text-xl font-bold text-amber-400 mb-4">Admin Panel</h2>
+            <div id="userList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONFIG ==========
+        const SUPABASE_URL = "https://vcwyvuflwioycxptreoq.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjd3l2dWZsd2lveWN4cHRyZW9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NzUyNTAsImV4cCI6MjA4OTI1MTI1MH0.vwMkPIkSeDk85Dt4awrbAAYoszeoQpfjpz3t7Qcavfw";
+        const CONTRACT_ADDRESS = "0x9F8C29E496ECB6C39c221458f211234DfCB233E0";
+        const ADMIN_EMAIL = "Efikcoinofficialecosystem@gmail.com"; // Change to your email
+
+        // ========== INIT ==========
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const provider = new ethers.providers.JsonRpcProvider("https://bsc-dataseed.binance.org/");
+        let userWallet = null;
+
+        // DOM elements
+        const authContainer = document.getElementById('authContainer');
+        const walletDashboard = document.getElementById('walletDashboard');
+        const adminPanel = document.getElementById('adminPanel');
+        const authMessage = document.getElementById('authMessage');
+        const walletMessage = document.getElementById('walletMessage');
+        const walletAddressSpan = document.getElementById('walletAddress');
+        const eceBalanceSpan = document.getElementById('eceBalance');
+        const bnbBalanceSpan = document.getElementById('bnbBalance');
+
+        // ========== AUTH FUNCTIONS ==========
+        async function signUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            if (!email || !password) return;
+
+            // 1. Create user in Supabase Auth
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: email,
+                password: password
+            });
+
+            if (authError) {
+                authMessage.innerText = 'Error: ' + authError.message;
+                return;
+            }
+
+            // 2. Generate a new wallet for the user
+            const wallet = ethers.Wallet.createRandom();
+            const encryptedPrivateKey = wallet.privateKey; // In production, encrypt this!
+
+            // 3. Store wallet info in the database
+            const { error: dbError } = await supabase
+                .from('wallets')
+                .insert([
+                    { 
+                        user_id: authData.user.id,
+                        address: wallet.address,
+                        private_key: encryptedPrivateKey // ⚠️ Need proper encryption!
+                    }
+                ]);
+
+            if (dbError) {
+                authMessage.innerText = 'Error storing wallet: ' + dbError.message;
+                return;
+            }
+
+            authMessage.innerText = '✅ User created! Please check your email to confirm.';
+        }
+
+        async function logIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            if (!email || !password) return;
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                authMessage.innerText = 'Error: ' + error.message;
+                return;
+            }
+
+            authMessage.innerText = '✅ Login successful!';
+            await loadUserWallet(data.user.id);
+            
+            // Show admin panel if this is admin
+            if (email === ADMIN_EMAIL) {
+                loadAllUsers();
+                adminPanel.classList.remove('hidden');
+            }
+        }
+
+        async function loadUserWallet(userId) {
+            const { data, error } = await supabase
+                .from('wallets')
+                .select('address, private_key')
+                .eq('user_id', userId)
+                .single();
+
+            if (error) {
+                walletMessage.innerText = 'Error loading wallet: ' + error.message;
+                return;
+            }
+
+            // Set up wallet
+            const privateKey = data.private_key; // ⚠️ Use encryption in production
+            userWallet = new ethers.Wallet(privateKey, provider);
+            
+            // Update UI
+            walletAddressSpan.innerText = data.address;
+            authContainer.classList.add('hidden');
+            walletDashboard.classList.remove('hidden');
+            
+            await refreshBalances();
+        }
+
+        async function refreshBalances() {
+            if (!userWallet) return;
+
+            // Get ECE balance
+            const abi = [ "function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)" ];
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
+            
+            const decimals = await contract.decimals();
+            const eceBalance = await contract.balanceOf(userWallet.address);
+            eceBalanceSpan.innerText = ethers.utils.formatUnits(eceBalance, decimals) + ' ECE';
+            
+            // Get BNB balance
+            const bnbBalance = await provider.getBalance(userWallet.address);
+            bnbBalanceSpan.innerText = ethers.utils.formatEther(bnbBalance) + ' BNB';
+        }
+
+        async function loadAllUsers() {
+            const { data, error } = await supabase
+                .from('wallets')
+                .select('user_id, address, created_at');
+
+            if (error) {
+                document.getElementById('userList').innerHTML = 'Error loading users';
+                return;
+            }
+
+            let html = '';
+            data.forEach(user => {
+                html += `<div class="bg-gray-700 p-2 rounded text-sm">
+                    <span class="text-amber-400">${user.address.slice(0,6)}...</span><br>
+                    <span class="text-gray-400 text-xs">${user.created_at}</span>
+                </div>`;
+            });
+            document.getElementById('userList').innerHTML = html;
+        }
+
+        // ========== SEND ECE ==========
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            if (!userWallet) return;
+            
+            const to = document.getElementById('sendTo').value;
+            const amount = document.getElementById('sendAmount').value;
+            if (!to || !amount) return;
+
+            try {
+                const abi = [ "function transfer(address to, uint256 amount) returns (bool)" ];
+                const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, userWallet);
+                
+                const decimals = 18;
+                const tx = await contract.transfer(to, ethers.utils.parseUnits(amount, decimals));
+                walletMessage.innerText = 'Sending...';
+                await tx.wait();
+                walletMessage.innerText = '✅ Transaction confirmed!';
+                await refreshBalances();
+            } catch (err) {
+                walletMessage.innerText = 'Error: ' + err.message;
+            }
+        });
+
+        // ========== LOGOUT ==========
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            userWallet = null;
+            authContainer.classList.remove('hidden');
+            walletDashboard.classList.add('hidden');
+            adminPanel.classList.add('hidden');
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+        });
+
+        // ========== EVENT LISTENERS ==========
+        document.getElementById('signupBtn').addEventListener('click', signUp);
+        document.getElementById('loginBtn').addEventListener('click', logIn);
+
+        // Check if user already logged in on page load
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                loadUserWallet(session.user.id);
+                if (session.user.email === ADMIN_EMAIL) {
+                    loadAllUsers();
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

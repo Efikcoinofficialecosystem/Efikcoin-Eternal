@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EfikCoin Eternal – Real Wallet System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white p-4">
+    <div class="max-w-md mx-auto">
+        <div class="text-center mb-6">
+            <img src="https://raw.githubusercontent.com/Efikcoinofficialecosystem/efikcoin-eternal/main/1772019882787.png" class="w-20 h-20 mx-auto rounded-full">
+            <h1 class="text-3xl font-bold text-amber-400">EfikCoin Eternal</h1>
+            <p class="text-gray-400">Real Wallet · Secure · Non‑Custodial</p>
+        </div>
+
+        <!-- Auth Forms -->
+        <div id="authContainer" class="bg-gray-800 p-6 rounded-xl space-y-4">
+            <h2 class="text-xl font-bold text-center mb-4">Sign Up / Login</h2>
+            
+            <input type="email" id="email" placeholder="Email" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2">
+            <input type="password" id="password" placeholder="Password" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2">
+            
+            <button id="signupBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-2 rounded">Sign Up</button>
+            <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded">Log In</button>
+            
+            <div id="authMessage" class="text-sm text-center"></div>
+        </div>
+
+        <!-- Wallet Dashboard (visible after login) -->
+        <div id="walletDashboard" class="hidden bg-gray-800 p-6 rounded-xl space-y-4">
+            <h2 class="text-xl font-bold text-amber-400 mb-4">Your Wallet</h2>
+            
+            <!-- Wallet Connection Section -->
+            <div id="walletConnectSection" class="space-y-3">
+                <p class="text-gray-400 text-sm">Connect your own wallet to interact with ECE</p>
+                <button id="connectWalletBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded">
+                    Connect MetaMask / WalletConnect
+                </button>
+                <div id="walletInfo" class="hidden">
+                    <p class="text-gray-400 text-xs">Connected Address</p>
+                    <p id="connectedAddress" class="font-mono text-sm break-all bg-gray-700 p-2 rounded"></p>
+                </div>
+            </div>
+
+            <!-- Balance & Send (only when wallet connected) -->
+            <div id="walletActions" class="hidden space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-gray-700 p-3 rounded">
+                        <p class="text-gray-400 text-xs">ECE Balance</p>
+                        <p id="eceBalance" class="text-xl font-bold text-amber-400">0</p>
+                    </div>
+                    <div class="bg-gray-700 p-3 rounded">
+                        <p class="text-gray-400 text-xs">BNB Balance</p>
+                        <p id="bnbBalance" class="text-xl font-bold text-amber-400">0</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-600 pt-4">
+                    <h3 class="font-bold mb-2">Send ECE</h3>
+                    <input type="text" id="sendTo" placeholder="Recipient Address" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 mb-2">
+                    <input type="text" id="sendAmount" placeholder="Amount" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 mb-2">
+                    <button id="sendBtn" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded">Send</button>
+                </div>
+            </div>
+
+            <button id="logoutBtn" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded mt-2">Logout</button>
+            <div id="walletMessage" class="text-sm text-center"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONFIG ==========
+        const SUPABASE_URL = "https://vcwyvuflwioycxptreoq.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjd3l2dWZsd2lveWN4cHRyZW9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NzUyNTAsImV4cCI6MjA4OTI1MTI1MH0.vwMkPIkSeDk85Dt4awrbAAYoszeoQpfjpz3t7Qcavfw";
+        const CONTRACT_ADDRESS = "0x9F8C29E496ECB6C39c221458f211234DfCB233E0";
+        const BSC_RPC = "https://bsc-dataseed.binance.org/";
+
+        // ========== INIT ==========
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const provider = new ethers.providers.JsonRpcProvider(BSC_RPC);
+        
+        let userWallet = null; // This will hold the connected wallet (MetaMask)
+        let userId = null;
+
+        // DOM elements
+        const authContainer = document.getElementById('authContainer');
+        const walletDashboard = document.getElementById('walletDashboard');
+        const authMessage = document.getElementById('authMessage');
+        const walletMessage = document.getElementById('walletMessage');
+        const connectedAddressSpan = document.getElementById('connectedAddress');
+        const eceBalanceSpan = document.getElementById('eceBalance');
+        const bnbBalanceSpan = document.getElementById('bnbBalance');
+        const walletConnectSection = document.getElementById('walletConnectSection');
+        const walletInfo = document.getElementById('walletInfo');
+        const walletActions = document.getElementById('walletActions');
+
+        // ========== AUTH FUNCTIONS ==========
+        async function signUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            if (!email || !password) return;
+
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                authMessage.innerText = 'Error: ' + error.message;
+                return;
+            }
+            authMessage.innerText = '✅ Check your email to confirm!';
+        }
+
+        async function logIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            if (!email || !password) return;
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                authMessage.innerText = 'Error: ' + error.message;
+                return;
+            }
+
+            userId = data.user.id;
+            authContainer.classList.add('hidden');
+            walletDashboard.classList.remove('hidden');
+            authMessage.innerText = '';
+        }
+
+        // ========== WALLET CONNECTION ==========
+        document.getElementById('connectWalletBtn').addEventListener('click', async () => {
+            if (!window.ethereum) {
+                walletMessage.innerText = '⚠️ Please install MetaMask or Trust Wallet';
+                return;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const address = accounts[0];
+                
+                // Store the wallet address in Supabase for this user
+                await storeWalletAddress(userId, address);
+
+                // Set up the wallet
+                userWallet = new ethers.providers.Web3Provider(window.ethereum).getSigner();
+                
+                // Update UI
+                connectedAddressSpan.innerText = address;
+                walletConnectSection.classList.add('hidden');
+                walletInfo.classList.remove('hidden');
+                walletActions.classList.remove('hidden');
+                walletMessage.innerText = '';
+
+                // Load balances
+                await refreshBalances(address);
+            } catch (err) {
+                walletMessage.innerText = 'Error: ' + err.message;
+            }
+        });
+
+        async function storeWalletAddress(userId, address) {
+            const { error } = await supabase
+                .from('wallets')
+                .upsert({ 
+                    user_id: userId, 
+                    address: address,
+                    updated_at: new Date()
+                }, { onConflict: 'user_id' });
+
+            if (error) console.error('DB error:', error);
+        }
+
+        async function refreshBalances(address) {
+            // Get ECE balance
+            const abi = [ "function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)" ];
+            const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
+            
+            const decimals = await contract.decimals();
+            const eceBalance = await contract.balanceOf(address);
+            eceBalanceSpan.innerText = ethers.utils.formatUnits(eceBalance, decimals) + ' ECE';
+            
+            // Get BNB balance
+            const bnbBalance = await provider.getBalance(address);
+            bnbBalanceSpan.innerText = ethers.utils.formatEther(bnbBalance) + ' BNB';
+        }
+
+        // ========== SEND ECE ==========
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            if (!userWallet) return;
+            
+            const to = document.getElementById('sendTo').value;
+            const amount = document.getElementById('sendAmount').value;
+            if (!to || !amount) return;
+
+            try {
+                const abi = [ "function transfer(address to, uint256 amount) returns (bool)" ];
+                const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, userWallet);
+                
+                const decimals = 18;
+                const tx = await contract.transfer(to, ethers.utils.parseUnits(amount, decimals));
+                walletMessage.innerText = 'Sending...';
+                await tx.wait();
+                walletMessage.innerText = '✅ Transaction confirmed!';
+                
+                const address = await userWallet.getAddress();
+                await refreshBalances(address);
+            } catch (err) {
+                walletMessage.innerText = 'Error: ' + err.message;
+            }
+        });
+
+        // ========== LOGOUT ==========
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            userWallet = null;
+            userId = null;
+            authContainer.classList.remove('hidden');
+            walletDashboard.classList.add('hidden');
+            walletConnectSection.classList.remove('hidden');
+            walletInfo.classList.add('hidden');
+            walletActions.classList.add('hidden');
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+        });
+
+        // ========== EVENT LISTENERS ==========
+        document.getElementById('signupBtn').addEventListener('click', signUp);
+        document.getElementById('loginBtn').addEventListener('click', logIn);
+
+        // Check if user already logged in on page load
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                userId = session.user.id;
+                authContainer.classList.add('hidden');
+                walletDashboard.classList.remove('hidden');
+                
+                // Optionally, fetch previously connected wallet
+                supabase
+                    .from('wallets')
+                    .select('address')
+                    .eq('user_id', userId)
+                    .maybeSingle()
+                    .then(({ data }) => {
+                        if (data?.address) {
+                            connectedAddressSpan.innerText = data.address;
+                            walletConnectSection.classList.add('hidden');
+                            walletInfo.classList.remove('hidden');
+                            walletActions.classList.remove('hidden');
+                            refreshBalances(data.address);
+                        }
+                    });
+            }
+        });
+    </script>
+</body>
+  </html>

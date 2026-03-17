@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EfikCoin Eternal – Simple Wallet</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        body { background: #0a0a0a; color: white; font-family: Arial; padding: 2rem; text-align: center; }
+        button { background: #f59e0b; color: black; padding: 1rem 2rem; border: none; border-radius: 2rem; font-size: 1.2rem; cursor: pointer; margin: 1rem; }
+        #balance { font-size: 2rem; color: #f59e0b; margin: 1rem; }
+        #address { color: #aaa; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <h1>EfikCoin Eternal</h1>
+    <p>Simple Wallet – No registration needed</p>
+    <button id="connect">Connect MetaMask</button>
+    <div id="address"></div>
+    <div id="balance"></div>
+
+    <script>
+        const CONTRACT = "0x9F8C29E496ECB6C39c221458f211234DfCB233E0";
+        const ABI = [ "function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)" ];
+
+        document.getElementById('connect').onclick = async () => {
+            if (!window.ethereum) {
+                alert('Please install MetaMask');
+                return;
+            }
+            try {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+                const address = await signer.getAddress();
+                document.getElementById('address').innerText = 'Connected: ' + address;
+
+                const contract = new ethers.Contract(CONTRACT, ABI, provider);
+                const decimals = await contract.decimals();
+                const bal = await contract.balanceOf(address);
+                document.getElementById('balance').innerText = ethers.utils.formatUnits(bal, decimals) + ' ECE';
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        };
+    </script>
+</body>
+</html>

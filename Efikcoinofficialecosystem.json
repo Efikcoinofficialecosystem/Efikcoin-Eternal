@@ -1,0 +1,33 @@
+{
+  "account": {
+    "id": "caa90ef660fab33d2269b13b4992fd2c",
+    "name": "Efikcoinofficialecosystem"
+  },
+  "action": {
+    "description": "Roll Token",
+    "result": "success",
+    "time": "2026-03-19T04:01:55.114Z",
+    "type": "update"
+  },
+  "actor": {
+    "context": "dash",
+    "email": "efikcoinofficialecosystem@gmail.com",
+    "id": "368709dc1c5625cb9c8315b3dbefdb16",
+    "ip_address": "2a02:6ea0:510c:3882::12",
+    "type": "user"
+  },
+  "id": "019d0441-cfaa-738f-97a9-954ece81aeb9",
+  "raw": {
+    "cf_ray_id": "9de9941f4a272005",
+    "method": "PUT",
+    "status_code": 200,
+    "uri": "/accounts/caa90ef660fab33d2269b13b4992fd2c/tokens/36799812b0451c571e440430c3e35bd3/value",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+  },
+  "resource": {
+    "id": "36799812b0451c571e440430c3e35bd3",
+    "product": "tokens",
+    "scope": "accounts",
+    "type": "value"
+  }
+}

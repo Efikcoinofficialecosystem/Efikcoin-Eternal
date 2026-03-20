@@ -19,7 +19,6 @@
         .error { color: #f87171; font-size: 0.9rem; margin-top: 0.25rem; }
         .success { color: #4ade80; }
         .hidden { display: none; }
-        /* Loading spinner */
         .spinner {
             border: 3px solid rgba(255,255,255,0.2);
             border-radius: 50%;
@@ -38,6 +37,8 @@
             opacity: 0.6;
             pointer-events: none;
         }
+        .loan-card { background: #1a1a1a; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid #f59e0b; }
+        .swap-iframe { width: 100%; height: 600px; border: none; border-radius: 1rem; background: #1a1a1a; }
     </style>
 </head>
 <body class="p-4 md:p-6 min-h-screen flex items-center justify-center">
@@ -62,7 +63,7 @@
 
         <!-- Main Dashboard (visible when logged in) -->
         <div id="dashboardScreen" class="hidden space-y-6">
-            <!-- Header -->
+            <!-- Header with Logo -->
             <div class="text-center">
                 <img src="https://raw.githubusercontent.com/Efikcoinofficialecosystem/efikcoin-eternal/main/1772019882787.png" alt="ECE Logo" class="w-16 h-16 mx-auto rounded-full">
                 <h1 class="text-4xl font-extrabold bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-clip-text text-transparent">
@@ -130,6 +131,8 @@
                 <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="airdrop">🪂 Airdrop</button>
                 <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="transactions">📋 Transactions</button>
                 <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="contract">📜 Contract</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="loans">💸 Loans</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="swap">🔄 Buy/Sell</button>
             </div>
 
             <!-- Tab Contents -->
@@ -238,6 +241,47 @@
                         <div id="contractMessage" class="text-sm mt-2"></div>
                     </div>
                 </div>
+
+                <!-- Loans Tab -->
+                <div id="loans-tab" class="tab-pane hidden">
+                    <div class="glass-card p-5">
+                        <h2 class="text-2xl font-bold mb-4">💸 Loan Requests</h2>
+                        <div class="bg-gray-800 p-4 rounded-xl mb-6">
+                            <h3 class="text-xl font-semibold text-amber-400 mb-3">Apply for a Loan</h3>
+                            <p class="text-sm text-gray-400 mb-3">Request ECE tokens. Admin will review and approve.</p>
+                            <input type="number" id="loanAmount" placeholder="Amount (ECE)" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 mb-3 text-white">
+                            <textarea id="loanReason" rows="2" placeholder="Reason for loan (e.g., business, education, emergency)" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 mb-3 text-white"></textarea>
+                            <label class="block text-sm text-gray-400 mb-2">Upload Document (simulated – just a text note)</label>
+                            <input type="file" id="loanDoc" accept=".pdf,.doc,.docx,.txt" class="mb-3 text-gray-400">
+                            <button id="applyLoanBtn" class="btn bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg w-full">Submit Application</button>
+                            <div id="loanMessage" class="text-sm mt-2"></div>
+                        </div>
+                        <div class="mb-6">
+                            <h3 class="text-xl font-semibold text-amber-400 mb-3">Your Loan History</h3>
+                            <div id="userLoansList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+                        </div>
+                        <div id="adminLoansSection" class="hidden">
+                            <h3 class="text-xl font-semibold text-amber-400 mb-3">📋 Pending Loan Approvals (Admin)</h3>
+                            <div id="pendingLoansList" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buy/Sell Tab -->
+                <div id="swap-tab" class="tab-pane hidden">
+                    <div class="glass-card p-5">
+                        <h2 class="text-2xl font-bold mb-4">🔄 Buy / Sell ECE</h2>
+                        <p class="text-gray-400 mb-4">Swap directly on PancakeSwap or use the embedded widget below.</p>
+                        <div class="grid md:grid-cols-2 gap-4 mb-6">
+                            <a href="https://pancakeswap.finance/swap?outputCurrency=0x9F8C29E496ECB6C39c221458f211234DfCB233E0" target="_blank" class="btn bg-green-600 hover:bg-green-700 text-white text-center py-3 rounded-lg">Buy ECE with BNB</a>
+                            <a href="https://pancakeswap.finance/swap?inputCurrency=0x9F8C29E496ECB6C39c221458f211234DfCB233E0" target="_blank" class="btn bg-red-600 hover:bg-red-700 text-white text-center py-3 rounded-lg">Sell ECE for BNB</a>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-amber-400 mb-3">Swap Widget (PancakeSwap)</h3>
+                            <iframe src="https://pancakeswap.finance/swap?outputCurrency=0x9F8C29E496ECB6C39c221458f211234DfCB233E0" width="100%" height="500" style="border: none; border-radius: 1rem;"></iframe>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Footer -->
@@ -253,7 +297,7 @@
             const CONTRACT_ADDRESS = "0x9F8C29E496ECB6C39c221458f211234DfCB233E0";
             const OWNER_ADDRESS = "0xc5ad5cfcf81ad63a94227334b898eafce6b27cca".toLowerCase();
             const BSC_RPC = "https://bsc-dataseed.binance.org/";
-            const BSC_API_KEY = "S843WQ988YXGJTEMWM83XCVR8FBF1PXYB6"; // Replace with your key
+            const BSC_API_KEY = "S843WQ988YXGJTEMWM83XCVR8FBF1PXYB6"; // Your API key
 
             const ABI = [
                 "function name() view returns (string)",
@@ -277,10 +321,21 @@
             ];
 
             // ========== AUTH STATE ==========
-            let currentUser = null; // { email, ... }
+            let currentUser = null;
             let provider, signer, contract, userAddress;
             let web3Modal;
             let isOwner = false;
+
+            // ========== LOAN DATA ==========
+            let loans = [];
+
+            function loadLoans() {
+                const stored = localStorage.getItem('efikLoans');
+                loans = stored ? JSON.parse(stored) : [];
+            }
+            function saveLoans() {
+                localStorage.setItem('efikLoans', JSON.stringify(loans));
+            }
 
             // ========== DOM ELEMENTS ==========
             const authScreen = document.getElementById('authScreen');
@@ -335,20 +390,17 @@
             const writeTransfer = document.getElementById('writeTransfer');
             const writeApprove = document.getElementById('writeApprove');
 
-            // ========== LOADING HELPERS ==========
-            function setLoading(button, loading) {
-                if (loading) {
-                    button.classList.add('btn-loading');
-                    button.innerHTML = `<span class="spinner"></span>Processing...`;
-                } else {
-                    button.classList.remove('btn-loading');
-                    // restore original text
-                    const originalText = button.getAttribute('data-original-text');
-                    if (originalText) button.innerText = originalText;
-                    else button.innerText = button.innerText.replace('Processing...', '').trim();
-                }
-            }
+            // Loan elements
+            const loanAmount = document.getElementById('loanAmount');
+            const loanReason = document.getElementById('loanReason');
+            const loanDoc = document.getElementById('loanDoc');
+            const applyLoanBtn = document.getElementById('applyLoanBtn');
+            const loanMessage = document.getElementById('loanMessage');
+            const userLoansList = document.getElementById('userLoansList');
+            const pendingLoansList = document.getElementById('pendingLoansList');
+            const adminLoansSection = document.getElementById('adminLoansSection');
 
+            // ========== LOADING HELPERS ==========
             function withLoading(button, asyncAction) {
                 return async function(...args) {
                     if (button.classList.contains('btn-loading')) return;
@@ -465,6 +517,7 @@
                     await updateUI();
                     checkOwner();
                     setupListeners(instance);
+                    if (currentUser) refreshLoansUI();
                 } catch (err) {
                     alert('Connection failed: ' + err.message);
                 }
@@ -473,7 +526,7 @@
             function setupListeners(instance) {
                 instance.on('accountsChanged', (accounts) => {
                     if (accounts.length === 0) disconnectWallet();
-                    else { userAddress = accounts[0]; updateUI(); checkOwner(); }
+                    else { userAddress = accounts[0]; updateUI(); checkOwner(); refreshLoansUI(); }
                 });
                 instance.on('chainChanged', () => window.location.reload());
             }
@@ -503,13 +556,12 @@
                     bnbBalanceSpan.innerText = ethers.utils.formatEther(bnbBalance) + ' BNB';
                     userAddressSpan.innerText = userAddress;
 
-                    // Staking info (if available)
                     try {
                         const staked = await contract.stakedBalance(userAddress);
                         userStakedSpan.innerText = ethers.utils.formatUnits(staked, decimals) + ' ECE';
                         const totalStaked = await contract.totalStaked();
                         totalStakedSpan.innerText = ethers.utils.formatUnits(totalStaked, decimals) + ' ECE';
-                    } catch (e) { /* ignore if not implemented */ }
+                    } catch (e) { /* ignore */ }
                 } catch (err) {
                     console.error(err);
                 }
@@ -525,9 +577,11 @@
                     if (isOwner) {
                         adminPanel.classList.remove('hidden');
                         ownerOnlyElements.forEach(el => el.classList.remove('hidden'));
+                        adminLoansSection.classList.remove('hidden');
                     } else {
                         adminPanel.classList.add('hidden');
                         ownerOnlyElements.forEach(el => el.classList.add('hidden'));
+                        adminLoansSection.classList.add('hidden');
                     }
                 } catch (e) { console.warn('owner check failed'); }
             }
@@ -540,6 +594,7 @@
                     const tabId = btn.dataset.tab;
                     tabPanes.forEach(pane => pane.classList.add('hidden'));
                     document.getElementById(tabId + '-tab').classList.remove('hidden');
+                    if (tabId === 'loans' && currentUser) refreshLoansUI();
                 });
             });
             document.querySelector('[data-tab="dashboard"]').classList.add('tab-active');
@@ -730,18 +785,161 @@
                 alert('✅ Approved');
             }));
 
+            // ========== LOANS ==========
+            function refreshLoansUI() {
+                if (!currentUser) return;
+                loadLoans();
+                const userLoans = loans.filter(l => l.userEmail === currentUser.email);
+                userLoansList.innerHTML = '';
+                if (userLoans.length === 0) {
+                    userLoansList.innerHTML = '<p class="text-gray-500">No loan requests yet.</p>';
+                } else {
+                    userLoans.forEach(loan => {
+                        const div = document.createElement('div');
+                        div.className = 'loan-card';
+                        div.innerHTML = `
+                            <div class="flex justify-between">
+                                <span class="font-bold">${loan.amount} ECE</span>
+                                <span class="text-xs px-2 py-1 rounded-full ${loan.status === 'approved' ? 'bg-green-800 text-green-300' : loan.status === 'rejected' ? 'bg-red-800 text-red-300' : 'bg-yellow-800 text-yellow-300'}">${loan.status.toUpperCase()}</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-1">Reason: ${loan.reason}</p>
+                            <p class="text-gray-500 text-xs mt-1">Submitted: ${new Date(loan.timestamp).toLocaleString()}</p>
+                            ${loan.status === 'approved' ? `<p class="text-green-400 text-sm mt-1">✅ Approved and minted to your wallet.</p>` : ''}
+                        `;
+                        userLoansList.appendChild(div);
+                    });
+                }
+
+                if (isOwner) {
+                    const pendingLoans = loans.filter(l => l.status === 'pending');
+                    pendingLoansList.innerHTML = '';
+                    if (pendingLoans.length === 0) {
+                        pendingLoansList.innerHTML = '<p class="text-gray-500">No pending loan requests.</p>';
+                    } else {
+                        pendingLoans.forEach(loan => {
+                            const div = document.createElement('div');
+                            div.className = 'loan-card';
+                            div.innerHTML = `
+                                <div class="flex justify-between">
+                                    <span class="font-bold">${loan.amount} ECE</span>
+                                    <span class="text-xs text-yellow-300">PENDING</span>
+                                </div>
+                                <p><strong>User:</strong> ${loan.userEmail}</p>
+                                <p><strong>Address:</strong> ${loan.userAddress}</p>
+                                <p><strong>Reason:</strong> ${loan.reason}</p>
+                                <p class="text-gray-500 text-xs">Document: ${loan.docFile || 'None'}</p>
+                                <div class="flex gap-2 mt-2">
+                                    <button class="approve-loan btn bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded" data-id="${loan.id}">Approve (Mint)</button>
+                                    <button class="reject-loan btn bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded" data-id="${loan.id}">Reject</button>
+                                </div>
+                            `;
+                            pendingLoansList.appendChild(div);
+                        });
+
+                        document.querySelectorAll('.approve-loan').forEach(btn => {
+                            btn.addEventListener('click', async (e) => {
+                                e.stopPropagation();
+                                const id = parseInt(btn.dataset.id);
+                                await approveLoan(id);
+                            });
+                        });
+                        document.querySelectorAll('.reject-loan').forEach(btn => {
+                            btn.addEventListener('click', async (e) => {
+                                e.stopPropagation();
+                                const id = parseInt(btn.dataset.id);
+                                rejectLoan(id);
+                            });
+                        });
+                    }
+                }
+            }
+
+            async function approveLoan(id) {
+                const loan = loans.find(l => l.id === id);
+                if (!loan) return;
+                if (!isOwner) return alert('Only owner can approve');
+                if (!contract || !userAddress) return alert('Owner must connect wallet');
+                if (!ethers.utils.isAddress(loan.userAddress)) return alert('Invalid user address');
+
+                try {
+                    const decimals = await contract.decimals();
+                    const amountWei = ethers.utils.parseUnits(loan.amount.toString(), decimals);
+                    const tx = await contract.mint(loan.userAddress, amountWei);
+                    await tx.wait();
+                    loan.status = 'approved';
+                    saveLoans();
+                    refreshLoansUI();
+                    alert(`✅ Loan approved and ${loan.amount} ECE minted to ${loan.userAddress}`);
+                } catch (err) {
+                    alert('Mint failed: ' + err.message);
+                }
+            }
+
+            function rejectLoan(id) {
+                const loan = loans.find(l => l.id === id);
+                if (!loan) return;
+                if (!isOwner) return;
+                loan.status = 'rejected';
+                saveLoans();
+                refreshLoansUI();
+                alert(`Loan rejected.`);
+            }
+
+            async function submitLoan() {
+                if (!currentUser) {
+                    loanMessage.innerText = 'Please log in first.';
+                    return;
+                }
+                if (!userAddress) {
+                    loanMessage.innerText = 'Please connect your wallet first.';
+                    return;
+                }
+                const amount = parseFloat(loanAmount.value.trim());
+                const reason = loanReason.value.trim();
+                if (!amount || amount <= 0) {
+                    loanMessage.innerText = 'Enter a valid amount.';
+                    return;
+                }
+                if (!reason) {
+                    loanMessage.innerText = 'Please provide a reason.';
+                    return;
+                }
+                let docFile = null;
+                if (loanDoc.files.length > 0) {
+                    docFile = loanDoc.files[0].name;
+                }
+
+                const newLoan = {
+                    id: Date.now(),
+                    userEmail: currentUser.email,
+                    userAddress: userAddress,
+                    amount: amount,
+                    reason: reason,
+                    docFile: docFile,
+                    status: 'pending',
+                    timestamp: Date.now()
+                };
+                loadLoans();
+                loans.push(newLoan);
+                saveLoans();
+                loanMessage.innerText = '✅ Loan request submitted! Admin will review.';
+                loanAmount.value = '';
+                loanReason.value = '';
+                loanDoc.value = '';
+                refreshLoansUI();
+            }
+
+            applyLoanBtn.addEventListener('click', withLoading(applyLoanBtn, submitLoan));
+
             // ========== INIT ==========
+            loadLoans();
             initWeb3Modal();
             checkSession();
 
-            // Auto-connect if wallet was previously connected
             if (web3Modal.cachedProvider && currentUser) {
                 connectWallet();
             }
-
-            // Load price chart stats from DexScreener API (optional, just for demo)
-            // Placeholder – real integration would require CORS proxy or backend
         })();
     </script>
 </body>
-                                </html>
+                    </html>

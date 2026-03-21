@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EfikCoin Eternal – Investment & Recovery Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(20,20,20,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,215,0,0.15); border-radius: 1.5rem; }
+        .btn { transition: all 0.2s; cursor: pointer; font-weight: 600; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(255,215,0,0.3); }
+        .hero-gradient { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #f59e0b; }
+        .recovery-tip { border-left: 4px solid #f59e0b; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation (links to main dapp) -->
+    <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <img src="https://raw.githubusercontent.com/Efikcoinofficialecosystem/efikcoin-eternal/main/1772019882787.png" alt="ECE Logo" class="w-10 h-10 rounded-full">
+            <span class="text-xl font-bold text-amber-400">EfikCoin Eternal</span>
+        </div>
+        <div class="space-x-4">
+            <a href="https://efikcoinofficialecosystem.github.io/efikcoin-eternal/" class="text-gray-300 hover:text-amber-400 transition">Dashboard</a>
+            <a href="#investment" class="text-gray-300 hover:text-amber-400 transition">Investment</a>
+            <a href="#recovery" class="text-gray-300 hover:text-amber-400 transition">Recovery</a>
+            <a href="#contact" class="text-gray-300 hover:text-amber-400 transition">Support</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient py-16 text-center">
+        <div class="container mx-auto px-4">
+            <h1 class="text-5xl font-extrabold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Secure Your Future with ECE</h1>
+            <p class="text-xl text-gray-300 mt-4 max-w-2xl mx-auto">Earn passive income, access loans, and grow your wealth with our decentralized ecosystem. Your investment, your control.</p>
+            <div class="mt-8">
+                <a href="https://efikcoinofficialecosystem.github.io/efikcoin-eternal/" class="btn bg-amber-500 hover:bg-amber-600 text-black px-8 py-3 rounded-full font-bold text-lg inline-flex items-center">
+                    <i class="fas fa-chart-line mr-2"></i> Start Investing
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Investment Opportunities -->
+    <section id="investment" class="container mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold text-center mb-12">📈 Investment Opportunities</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Staking Card -->
+            <div class="glass-card p-6 text-center">
+                <i class="fas fa-lock text-4xl text-amber-400 mb-4"></i>
+                <h3 class="text-2xl font-bold mb-2">Staking</h3>
+                <p class="text-gray-400">Lock your ECE tokens and earn up to <span class="text-amber-400 font-bold">750% APR</span>. Choose lock periods from 30 to 365 days.</p>
+                <div class="mt-4 space-y-2 text-sm">
+                    <div class="flex justify-between"><span>30 days</span><span class="text-amber-400">125% APR</span></div>
+                    <div class="flex justify-between"><span>90 days</span><span class="text-amber-400">250% APR</span></div>
+                    <div class="flex justify-between"><span>365 days</span><span class="text-amber-400">750% APR</span></div>
+                </div>
+                <a href="https://efikcoinofficialecosystem.github.io/efikcoin-eternal/#staking" class="inline-block mt-6 text-amber-400 hover:underline">Stake now →</a>
+            </div>
+            <!-- Loans Card -->
+            <div class="glass-card p-6 text-center">
+                <i class="fas fa-hand-holding-usd text-4xl text-amber-400 mb-4"></i>
+                <h3 class="text-2xl font-bold mb-2">Loans</h3>
+                <p class="text-gray-400">Access instant ECE loans for personal or business needs. Admin review and approval ensures fair distribution.</p>
+                <div class="mt-4">
+                    <p class="text-sm">Request up to <span class="text-amber-400 font-bold">10,000 ECE</span> with flexible repayment options.</p>
+                </div>
+                <a href="https://efikcoinofficialecosystem.github.io/efikcoin-eternal/#loans" class="inline-block mt-6 text-amber-400 hover:underline">Apply for loan →</a>
+            </div>
+            <!-- Airdrop Card -->
+            <div class="glass-card p-6 text-center">
+                <i class="fas fa-gift text-4xl text-amber-400 mb-4"></i>
+                <h3 class="text-2xl font-bold mb-2">Airdrops</h3>
+                <p class="text-gray-400">Be part of our community and receive free ECE tokens through regular airdrop campaigns.</p>
+                <div class="mt-4">
+                    <p class="text-sm">Stay active and get rewarded for your participation.</p>
+                </div>
+                <a href="https://efikcoinofficialecosystem.github.io/efikcoin-eternal/#airdrop" class="inline-block mt-6 text-amber-400 hover:underline">Learn more →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Investment Recovery Tools -->
+    <section id="recovery" class="bg-gray-900 py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">🛡️ Investment Recovery & Planning</h2>
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Staking Calculator -->
+                <div class="glass-card p-6">
+                    <h3 class="text-2xl font-bold mb-4">Staking Profit Calculator</h3>
+                    <p class="text-gray-400 mb-4">Estimate your potential earnings from staking ECE.</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-400 mb-1">Amount (ECE)</label>
+                            <input type="number" id="stakeAmountCalc" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white" placeholder="e.g., 1000">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 mb-1">Lock Period (days)</label>
+                            <select id="lockPeriodCalc" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white">
+                                <option value="30">30 days (125% APR)</option>
+                                <option value="60">60 days (180% APR)</option>
+                                <option value="90">90 days (250% APR)</option>
+                                <option value="180">180 days (400% APR)</option>
+                                <option value="365">365 days (750% APR)</option>
+                            </select>
+                        </div>
+                        <button id="calculateBtn" class="btn bg-amber-500 hover:bg-amber-600 text-black w-full py-2 rounded-lg font-bold">Calculate Profit</button>
+                        <div id="profitResult" class="text-center mt-4 text-amber-400 font-bold"></div>
+                    </div>
+                </div>
+                <!-- Recovery Form -->
+                <div class="glass-card p-6">
+                    <h3 class="text-2xl font-bold mb-4">Need Help Recovering Investment?</h3>
+                    <p class="text-gray-400 mb-4">If you've encountered issues with your investment or need guidance, our support team is here to help.</p>
+                    <form id="recoveryForm" class="space-y-4">
+                        <input type="text" id="recoveryName" placeholder="Your Name" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white">
+                        <input type="email" id="recoveryEmail" placeholder="Email Address" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white">
+                        <input type="text" id="recoveryWallet" placeholder="Wallet Address (optional)" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white">
+                        <textarea id="recoveryMessage" rows="4" placeholder="Describe your issue or request..." class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white"></textarea>
+                        <button type="submit" class="btn bg-amber-500 hover:bg-amber-600 text-black w-full py-2 rounded-lg font-bold">Send Request</button>
+                        <div id="recoveryStatus" class="text-sm text-center text-green-400"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Invest? -->
+    <section class="container mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold text-center mb-12">✨ Why Invest in EfikCoin Eternal?</h2>
+        <div class="grid md:grid-cols-4 gap-6 text-center">
+            <div>
+                <i class="fas fa-shield-alt text-4xl text-amber-400 mb-3"></i>
+                <p class="font-bold">Secure & Immutable</p>
+                <p class="text-sm text-gray-400">Verified contract, non-upgradeable</p>
+            </div>
+            <div>
+                <i class="fas fa-chart-line text-4xl text-amber-400 mb-3"></i>
+                <p class="font-bold">High Yields</p>
+                <p class="text-sm text-gray-400">Earn up to 750% APR</p>
+            </div>
+            <div>
+                <i class="fas fa-users text-4xl text-amber-400 mb-3"></i>
+                <p class="font-bold">Community Driven</p>
+                <p class="text-sm text-gray-400">Governance and airdrops</p>
+            </div>
+            <div>
+                <i class="fas fa-globe text-4xl text-amber-400 mb-3"></i>
+                <p class="font-bold">Global Access</p>
+                <p class="text-sm text-gray-400">Use anywhere, any wallet</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact & Social -->
+    <section id="contact" class="container mx-auto px-4 py-16 border-t border-gray-800">
+        <div class="text-center">
+            <h2 class="text-3xl font-bold mb-6">Connect With Us</h2>
+            <div class="flex justify-center space-x-6 text-2xl">
+                <a href="https://discord.gg/Ub4vvudcV" target="_blank" class="text-gray-400 hover:text-amber-400 transition"><i class="fab fa-discord"></i></a>
+                <a href="https://t.me/efikcoinofficialecosystem" target="_blank" class="text-gray-400 hover:text-amber-400 transition"><i class="fab fa-telegram"></i></a>
+                <a href="mailto:efikcoinofficialecosystem@gmail.com" class="text-gray-400 hover:text-amber-400 transition"><i class="fas fa-envelope"></i></a>
+            </div>
+            <p class="text-gray-500 mt-6">© 2026 EfikCoin Eternal – Investment & Recovery Hub</p>
+            <p class="text-xs text-gray-600 mt-2">This site is for informational purposes. Always do your own research before investing.</p>
+        </div>
+    </section>
+
+    <script>
+        // Staking calculator logic
+        document.getElementById('calculateBtn').addEventListener('click', () => {
+            const amount = parseFloat(document.getElementById('stakeAmountCalc').value);
+            const periodDays = parseInt(document.getElementById('lockPeriodCalc').value);
+            let apr = 0;
+            switch (periodDays) {
+                case 30: apr = 1.25; break;
+                case 60: apr = 1.80; break;
+                case 90: apr = 2.50; break;
+                case 180: apr = 4.00; break;
+                case 365: apr = 7.50; break;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                document.getElementById('profitResult').innerText = 'Please enter a valid amount.';
+                return;
+            }
+            const profit = amount * apr;
+            const total = amount + profit;
+            document.getElementById('profitResult').innerHTML = `Estimated profit: <span class="text-green-400">${profit.toFixed(2)} ECE</span><br>Total after period: ${total.toFixed(2)} ECE`;
+        });
+
+        // Simple form submission (demo – stores in localStorage, can be extended)
+        document.getElementById('recoveryForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('recoveryName').value.trim();
+            const email = document.getElementById('recoveryEmail').value.trim();
+            const wallet = document.getElementById('recoveryWallet').value.trim();
+            const message = document.getElementById('recoveryMessage').value.trim();
+            if (!name || !email || !message) {
+                document.getElementById('recoveryStatus').innerText = 'Please fill all required fields.';
+                document.getElementById('recoveryStatus').classList.add('text-red-400');
+                return;
+            }
+            // Save to localStorage (demo only – real implementation would send to a backend)
+            const requests = JSON.parse(localStorage.getItem('recoveryRequests') || '[]');
+            requests.push({ name, email, wallet, message, date: new Date().toISOString() });
+            localStorage.setItem('recoveryRequests', JSON.stringify(requests));
+            document.getElementById('recoveryStatus').innerText = '✅ Request submitted! Our team will contact you soon.';
+            document.getElementById('recoveryStatus').classList.remove('text-red-400');
+            document.getElementById('recoveryStatus').classList.add('text-green-400');
+            document.getElementById('recoveryForm').reset();
+        });
+    </script>
+</body>
+</html>

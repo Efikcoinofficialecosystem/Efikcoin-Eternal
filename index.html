@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>EfikCoin Eternal – Global DeFi Ecosystem</title>
+    <title>EfikCoin Eternal – Complete DeFi Ecosystem</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body { background: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
         .glass-card { background: rgba(20,20,20,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,215,0,0.15); border-radius: 1.5rem; }
@@ -66,6 +67,11 @@
             color: #f59e0b;
             margin-top: 0.25rem;
         }
+        .social-icon {
+            transition: transform 0.2s;
+        }
+        .social-icon:hover { transform: scale(1.1); }
+        .fa-brands, .fa-solid { margin-right: 4px; }
     </style>
 </head>
 <body class="p-4 md:p-6 min-h-screen flex items-center justify-center">
@@ -146,7 +152,7 @@
                 </div>
             </div>
 
-            <!-- Admin Panel (owner only) -->
+            <!-- Admin Panel -->
             <div id="adminPanel" class="glass-card p-5 border-2 border-amber-500/50 hidden">
                 <h2 class="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2" data-i18n="admin_panel">👑 Founder's Admin</h2>
                 <div class="grid md:grid-cols-4 gap-3">
@@ -229,7 +235,7 @@
                     </div>
                 </div>
 
-                <!-- Airdrop Tab (owner only) -->
+                <!-- Airdrop Tab -->
                 <div id="airdrop-tab" class="tab-pane hidden owner-only">
                     <div class="glass-card p-5">
                         <h2 class="text-2xl font-bold mb-4" data-i18n="airdrop_manager">🪂 Airdrop Manager</h2>
@@ -278,24 +284,44 @@
                     </div>
                 </div>
 
-                <!-- Loans Tab -->
+                <!-- Loans Tab (Enhanced with Multi-Coin) -->
                 <div id="loans-tab" class="tab-pane hidden">
                     <div class="glass-card p-5">
                         <h2 class="text-2xl font-bold mb-4" data-i18n="loans">💸 Loan Requests</h2>
+                        <!-- User loan application form -->
                         <div class="bg-gray-800 p-4 rounded-xl mb-6">
                             <h3 class="text-xl font-semibold text-amber-400 mb-3" data-i18n="apply_loan">Apply for a Loan</h3>
-                            <p class="text-sm text-gray-400 mb-3" data-i18n="loan_info">Request ECE tokens. Admin will review and approve.</p>
-                            <input type="number" id="loanAmount" placeholder="Amount (ECE)" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 mb-3 text-white">
+                            <p class="text-sm text-gray-400 mb-3" data-i18n="loan_info">Request crypto assets. Admin will review and approve.</p>
+                            <div class="grid md:grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">Coin Type</label>
+                                    <select id="loanCoin" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white">
+                                        <option value="ECE">ECE (EfikCoin)</option>
+                                        <option value="BNB">BNB (Binance Coin)</option>
+                                        <option value="USDT">USDT (Tether)</option>
+                                        <option value="BTC">BTC (Bitcoin)</option>
+                                        <option value="ETH">ETH (Ethereum)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-1">Amount</label>
+                                    <input type="number" id="loanAmount" placeholder="Amount" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white">
+                                </div>
+                            </div>
                             <textarea id="loanReason" rows="2" placeholder="Reason for loan (e.g., business, education, emergency)" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 mb-3 text-white"></textarea>
                             <label class="block text-sm text-gray-400 mb-2" data-i18n="upload_doc">Upload Document (simulated – just a text note)</label>
                             <input type="file" id="loanDoc" accept=".pdf,.doc,.docx,.txt" class="mb-3 text-gray-400">
                             <button id="applyLoanBtn" class="btn bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg w-full" data-i18n="submit_application">Submit Application</button>
                             <div id="loanMessage" class="text-sm mt-2"></div>
                         </div>
+
+                        <!-- User's loan history -->
                         <div class="mb-6">
                             <h3 class="text-xl font-semibold text-amber-400 mb-3" data-i18n="loan_history">Your Loan History</h3>
                             <div id="userLoansList" class="space-y-2 max-h-60 overflow-y-auto"></div>
                         </div>
+
+                        <!-- Admin loan management -->
                         <div id="adminLoansSection" class="hidden">
                             <h3 class="text-xl font-semibold text-amber-400 mb-3" data-i18n="pending_approvals">📋 Pending Loan Approvals (Admin)</h3>
                             <div id="pendingLoansList" class="space-y-2 max-h-96 overflow-y-auto"></div>
@@ -320,8 +346,14 @@
                 </div>
             </div>
 
-            <!-- Footer -->
+            <!-- Footer with social links -->
             <div class="text-center text-gray-500 text-sm pt-4 border-t border-gray-800">
+                <div class="flex justify-center space-x-6 mb-4">
+                    <a href="https://discord.gg/Ub4vvudcV" target="_blank" class="social-icon text-2xl text-gray-400 hover:text-amber-400 transition"><i class="fab fa-discord"></i></a>
+                    <a href="https://t.me/efikcoinofficialecosystem" target="_blank" class="social-icon text-2xl text-gray-400 hover:text-amber-400 transition"><i class="fab fa-telegram"></i></a>
+                    <a href="mailto:efikcoinofficialecosystem@gmail.com" class="social-icon text-2xl text-gray-400 hover:text-amber-400 transition"><i class="fas fa-envelope"></i></a>
+                    <a href="#" onclick="window.open('https://twitter.com/efikcoin', '_blank')" class="social-icon text-2xl text-gray-400 hover:text-amber-400 transition"><i class="fab fa-twitter"></i></a>
+                </div>
                 © 2026 EfikCoin Eternal · Live on BSC · Built with ❤️ for humanity
             </div>
         </div>
@@ -367,9 +399,9 @@
                 staking_pool: "🔒 Staking Pool", your_staked: "Your Staked", total_staked: "Total Staked", apr: "APR", stake: "Stake", unstake: "Unstake", claim: "Claim",
                 airdrop_manager: "🪂 Airdrop Manager", send_airdrop: "Send Airdrop", upload_csv: "Upload CSV",
                 recent_transactions: "📋 Recent Transactions", contract_interface: "📜 Contract Interaction", read_functions: "Read Functions", write_functions: "Write Functions", transfer: "transfer()", approve: "approve()",
-                loans: "💸 Loan Requests", apply_loan: "Apply for a Loan", loan_info: "Request ECE tokens. Admin will review and approve.", upload_doc: "Upload Document (simulated – just a text note)", submit_application: "Submit Application", loan_history: "Your Loan History", pending_approvals: "📋 Pending Loan Approvals (Admin)",
+                loans: "💸 Loan Requests", apply_loan: "Apply for a Loan", loan_info: "Request crypto assets. Admin will review and approve.", upload_doc: "Upload Document (simulated – just a text note)", submit_application: "Submit Application", loan_history: "Your Loan History", pending_approvals: "📋 Pending Loan Approvals (Admin)",
                 buy_sell: "🔄 Buy / Sell ECE", swap_info: "Swap directly on PancakeSwap or use the embedded widget below.", buy_ece: "Buy ECE with BNB", sell_ece: "Sell ECE for BNB", swap_widget: "Swap Widget (PancakeSwap)",
-                tagline: "ECE · Complete DeFi Ecosystem", password_reset_title: "Reset Password", reset_instruction: "Enter your email to reset your password", reset_button: "Reset", cancel: "Cancel", reset_success: "Password updated! You can now log in with the new password.", reset_not_found: "Email not found. Please sign up first."
+                tagline: "ECE · Complete DeFi Ecosystem", reset_instruction: "Enter your email to reset your password", reset_success: "Password updated! You can now log in with the new password.", reset_not_found: "Email not found. Please sign up first."
             },
             fr: {
                 auth_prompt: "Veuillez vous inscrire ou vous connecter pour continuer", signup: "S'inscrire", login: "Se connecter", forgot_password: "Mot de passe oublié ?",
@@ -381,9 +413,9 @@
                 staking_pool: "🔒 Pool de staking", your_staked: "Votre mise", total_staked: "Total misé", apr: "TAEG", stake: "Miser", unstake: "Retirer", claim: "Réclamer",
                 airdrop_manager: "🪂 Gestionnaire d'airdrop", send_airdrop: "Envoyer l'airdrop", upload_csv: "Importer CSV",
                 recent_transactions: "📋 Transactions récentes", contract_interface: "📜 Interaction avec le contrat", read_functions: "Fonctions de lecture", write_functions: "Fonctions d'écriture", transfer: "transfer()", approve: "approuver()",
-                loans: "💸 Demandes de prêt", apply_loan: "Demander un prêt", loan_info: "Demandez des jetons ECE. L'administrateur examinera et approuvera.", upload_doc: "Télécharger un document (simulé)", submit_application: "Soumettre la demande", loan_history: "Votre historique de prêts", pending_approvals: "📋 Approbations de prêts en attente (Admin)",
+                loans: "💸 Demandes de prêt", apply_loan: "Demander un prêt", loan_info: "Demandez des actifs crypto. L'administrateur examinera et approuvera.", upload_doc: "Télécharger un document (simulé)", submit_application: "Soumettre la demande", loan_history: "Votre historique de prêts", pending_approvals: "📋 Approbations de prêts en attente (Admin)",
                 buy_sell: "🔄 Acheter / Vendre ECE", swap_info: "Échangez directement sur PancakeSwap ou utilisez le widget intégré ci-dessous.", buy_ece: "Acheter ECE avec BNB", sell_ece: "Vendre ECE pour BNB", swap_widget: "Widget d'échange (PancakeSwap)",
-                tagline: "ECE · Écosystème DeFi complet", password_reset_title: "Réinitialiser le mot de passe", reset_instruction: "Entrez votre email pour réinitialiser votre mot de passe", reset_button: "Réinitialiser", cancel: "Annuler", reset_success: "Mot de passe mis à jour ! Vous pouvez maintenant vous connecter avec le nouveau mot de passe.", reset_not_found: "Email introuvable. Veuillez vous inscrire d'abord."
+                tagline: "ECE · Écosystème DeFi complet", reset_instruction: "Entrez votre email pour réinitialiser votre mot de passe", reset_success: "Mot de passe mis à jour ! Vous pouvez maintenant vous connecter avec le nouveau mot de passe.", reset_not_found: "Email introuvable. Veuillez vous inscrire d'abord."
             },
             es: {
                 auth_prompt: "Regístrese o inicie sesión para continuar", signup: "Registrarse", login: "Iniciar sesión", forgot_password: "¿Olvidó su contraseña?",
@@ -395,9 +427,9 @@
                 staking_pool: "🔒 Pool de staking", your_staked: "Su apuesta", total_staked: "Total apostado", apr: "APR", stake: "Apostar", unstake: "Retirar apuesta", claim: "Reclamar",
                 airdrop_manager: "🪂 Administrador de airdrop", send_airdrop: "Enviar airdrop", upload_csv: "Subir CSV",
                 recent_transactions: "📋 Transacciones recientes", contract_interface: "📜 Interacción con el contrato", read_functions: "Funciones de lectura", write_functions: "Funciones de escritura", transfer: "transfer()", approve: "aprobar()",
-                loans: "💸 Solicitudes de préstamo", apply_loan: "Solicitar un préstamo", loan_info: "Solicite tokens ECE. El administrador revisará y aprobará.", upload_doc: "Subir documento (simulado)", submit_application: "Enviar solicitud", loan_history: "Su historial de préstamos", pending_approvals: "📋 Aprobaciones de préstamos pendientes (Admin)",
+                loans: "💸 Solicitudes de préstamo", apply_loan: "Solicitar un préstamo", loan_info: "Solicite activos cripto. El administrador revisará y aprobará.", upload_doc: "Subir documento (simulado)", submit_application: "Enviar solicitud", loan_history: "Su historial de préstamos", pending_approvals: "📋 Aprobaciones de préstamos pendientes (Admin)",
                 buy_sell: "🔄 Comprar / Vender ECE", swap_info: "Intercambie directamente en PancakeSwap o use el widget integrado a continuación.", buy_ece: "Comprar ECE con BNB", sell_ece: "Vender ECE por BNB", swap_widget: "Widget de intercambio (PancakeSwap)",
-                tagline: "ECE · Ecosistema DeFi completo", password_reset_title: "Restablecer contraseña", reset_instruction: "Ingrese su correo electrónico para restablecer su contraseña", reset_button: "Restablecer", cancel: "Cancelar", reset_success: "¡Contraseña actualizada! Ahora puede iniciar sesión con la nueva contraseña.", reset_not_found: "Correo no encontrado. Regístrese primero."
+                tagline: "ECE · Ecosistema DeFi completo", reset_instruction: "Ingrese su correo electrónico para restablecer su contraseña", reset_success: "¡Contraseña actualizada! Ahora puede iniciar sesión con la nueva contraseña.", reset_not_found: "Correo no encontrado. Regístrese primero."
             }
         };
 
@@ -675,7 +707,7 @@
             await updateUI();
         }));
 
-        // ========== AIRDROP (fixed) ==========
+        // ========== AIRDROP ==========
         const airdropBtn = document.getElementById('airdropBtn');
         const airdropList = document.getElementById('airdropList');
         const airdropFile = document.getElementById('airdropFile');
@@ -825,9 +857,38 @@
         }));
 
         // ========== LOANS ==========
+        async function submitLoan() {
+            if (!currentUser) throw new Error('Please log in first.');
+            if (!userAddress) throw new Error('Please connect your wallet first.');
+            const coin = document.getElementById('loanCoin').value;
+            const amount = parseFloat(document.getElementById('loanAmount').value.trim());
+            const reason = document.getElementById('loanReason').value.trim();
+            if (!amount || amount <= 0) throw new Error('Enter a valid amount.');
+            if (!reason) throw new Error('Please provide a reason.');
+            let docFile = null;
+            if (document.getElementById('loanDoc').files.length > 0) docFile = document.getElementById('loanDoc').files[0].name;
+            const newLoan = {
+                id: Date.now(),
+                userEmail: currentUser.email,
+                userAddress: userAddress,
+                coin: coin,
+                amount: amount,
+                reason: reason,
+                docFile: docFile,
+                status: 'pending',
+                timestamp: Date.now()
+            };
+            loans.push(newLoan);
+            saveLoans();
+            document.getElementById('loanMessage').innerText = '✅ Loan request submitted! Admin will review.';
+            document.getElementById('loanAmount').value = '';
+            document.getElementById('loanReason').value = '';
+            document.getElementById('loanDoc').value = '';
+            refreshLoansUI();
+        }
+
         function refreshLoansUI() {
             if (!currentUser) return;
-            loadLoans();
             const userLoans = loans.filter(l => l.userEmail === currentUser.email);
             const userLoansList = document.getElementById('userLoansList');
             userLoansList.innerHTML = '';
@@ -839,16 +900,17 @@
                     div.className = 'loan-card';
                     div.innerHTML = `
                         <div class="flex justify-between">
-                            <span class="font-bold">${loan.amount} ECE</span>
+                            <span class="font-bold">${loan.amount} ${loan.coin}</span>
                             <span class="text-xs px-2 py-1 rounded-full ${loan.status === 'approved' ? 'bg-green-800 text-green-300' : loan.status === 'rejected' ? 'bg-red-800 text-red-300' : 'bg-yellow-800 text-yellow-300'}">${loan.status.toUpperCase()}</span>
                         </div>
                         <p class="text-gray-400 text-sm mt-1">Reason: ${loan.reason}</p>
                         <p class="text-gray-500 text-xs mt-1">Submitted: ${new Date(loan.timestamp).toLocaleString()}</p>
-                        ${loan.status === 'approved' ? `<p class="text-green-400 text-sm mt-1">✅ Approved and minted to your wallet.</p>` : ''}
+                        ${loan.status === 'approved' ? `<p class="text-green-400 text-sm mt-1">✅ Approved. ${loan.coin === 'ECE' ? 'Minted to your wallet.' : 'Admin will send manually.'}</p>` : ''}
                     `;
                     userLoansList.appendChild(div);
                 });
             }
+
             if (isOwner) {
                 const pendingLoans = loans.filter(l => l.status === 'pending');
                 const pendingLoansList = document.getElementById('pendingLoansList');
@@ -861,7 +923,7 @@
                         div.className = 'loan-card';
                         div.innerHTML = `
                             <div class="flex justify-between">
-                                <span class="font-bold">${loan.amount} ECE</span>
+                                <span class="font-bold">${loan.amount} ${loan.coin}</span>
                                 <span class="text-xs text-yellow-300">PENDING</span>
                             </div>
                             <p><strong>User:</strong> ${loan.userEmail}</p>
@@ -869,7 +931,7 @@
                             <p><strong>Reason:</strong> ${loan.reason}</p>
                             <p class="text-gray-500 text-xs">Document: ${loan.docFile || 'None'}</p>
                             <div class="flex gap-2 mt-2">
-                                <button class="approve-loan btn bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded" data-id="${loan.id}">Approve (Mint)</button>
+                                <button class="approve-loan btn bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded" data-id="${loan.id}">Approve</button>
                                 <button class="reject-loan btn bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded" data-id="${loan.id}">Reject</button>
                             </div>
                         `;
@@ -882,18 +944,25 @@
                             if (!loan) return;
                             if (!isOwner) return alert('Only owner can approve');
                             if (!contract || !userAddress) return alert('Owner must connect wallet');
-                            if (!ethers.utils.isAddress(loan.userAddress)) return alert('Invalid user address');
-                            try {
-                                const decimals = await contract.decimals();
-                                const amountWei = ethers.utils.parseUnits(loan.amount.toString(), decimals);
-                                const tx = await contract.mint(loan.userAddress, amountWei);
-                                await tx.wait();
+                            if (loan.coin === 'ECE') {
+                                if (!ethers.utils.isAddress(loan.userAddress)) return alert('Invalid user address');
+                                try {
+                                    const decimals = await contract.decimals();
+                                    const amountWei = ethers.utils.parseUnits(loan.amount.toString(), decimals);
+                                    const tx = await contract.mint(loan.userAddress, amountWei);
+                                    await tx.wait();
+                                    loan.status = 'approved';
+                                    saveLoans();
+                                    refreshLoansUI();
+                                    alert(`✅ Loan approved and ${loan.amount} ECE minted to ${loan.userAddress}`);
+                                } catch (err) {
+                                    alert('Mint failed: ' + err.message);
+                                }
+                            } else {
                                 loan.status = 'approved';
                                 saveLoans();
                                 refreshLoansUI();
-                                alert(`✅ Loan approved and ${loan.amount} ECE minted to ${loan.userAddress}`);
-                            } catch (err) {
-                                alert('Mint failed: ' + err.message);
+                                alert(`✅ Loan approved (${loan.amount} ${loan.coin}). Please send the funds to ${loan.userAddress} manually.`);
                             }
                         });
                     });
@@ -912,34 +981,8 @@
                 }
             }
         }
-        document.getElementById('applyLoanBtn').addEventListener('click', withLoading(document.getElementById('applyLoanBtn'), async () => {
-            if (!currentUser) throw new Error('Please log in first.');
-            if (!userAddress) throw new Error('Please connect your wallet first.');
-            const amount = parseFloat(document.getElementById('loanAmount').value.trim());
-            const reason = document.getElementById('loanReason').value.trim();
-            if (!amount || amount <= 0) throw new Error('Enter a valid amount.');
-            if (!reason) throw new Error('Please provide a reason.');
-            let docFile = null;
-            if (document.getElementById('loanDoc').files.length > 0) docFile = document.getElementById('loanDoc').files[0].name;
-            const newLoan = {
-                id: Date.now(),
-                userEmail: currentUser.email,
-                userAddress: userAddress,
-                amount: amount,
-                reason: reason,
-                docFile: docFile,
-                status: 'pending',
-                timestamp: Date.now()
-            };
-            loadLoans();
-            loans.push(newLoan);
-            saveLoans();
-            document.getElementById('loanMessage').innerText = '✅ Loan request submitted! Admin will review.';
-            document.getElementById('loanAmount').value = '';
-            document.getElementById('loanReason').value = '';
-            document.getElementById('loanDoc').value = '';
-            refreshLoansUI();
-        }));
+
+        document.getElementById('applyLoanBtn').addEventListener('click', withLoading(document.getElementById('applyLoanBtn'), submitLoan));
 
         // ========== INIT ==========
         initWeb3Modal();
@@ -953,4 +996,4 @@
         loadLoans();
     </script>
 </body>
-            </html>
+    </html>

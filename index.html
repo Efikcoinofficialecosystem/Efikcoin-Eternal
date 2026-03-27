@@ -13,6 +13,7 @@
     <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
+        /* ... (all existing styles unchanged) ... */
         body { background: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
         .glass-card { background: rgba(20,20,20,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,215,0,0.15); border-radius: 1.5rem; }
         .btn { transition: all 0.2s; cursor: pointer; font-weight: 600; }
@@ -199,7 +200,7 @@
                 <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="swap" data-i18n="tab_swap">🔄 Buy/Sell</button>
             </div>
 
-            <!-- Tab Contents -->
+            <!-- Tab Contents (full dashboard features) -->
             <div id="tabContent">
                 <!-- Dashboard Tab -->
                 <div id="dashboard-tab" class="tab-pane">
@@ -310,7 +311,6 @@
                 <div id="loans-tab" class="tab-pane hidden">
                     <div class="glass-card p-5">
                         <h2 class="text-2xl font-bold mb-4" data-i18n="loans">💸 Loan Requests</h2>
-                        <!-- User loan application form -->
                         <div class="bg-gray-800 p-4 rounded-xl mb-6">
                             <h3 class="text-xl font-semibold text-amber-400 mb-3" data-i18n="apply_loan">Apply for a Loan</h3>
                             <p class="text-sm text-gray-400 mb-3" data-i18n="loan_info">Request crypto assets. Admin will review and approve.</p>
@@ -378,11 +378,11 @@
     </div>
 
     <script>
-        // ========== EMAILJS CONFIGURATION (FILL YOUR DETAILS) ==========
+        // ========== EMAILJS CONFIGURATION (FILLED WITH YOUR CREDENTIALS) ==========
         const EMAILJS_CONFIG = {
-            serviceId: "service_307uo4r",      // e.g., "service_xxxxx"
-            templateId: "template_zlzglpn",    // e.g., "template_xxxxx"
-            publicKey: "8yNS7zwYWRbgGGzxG"       // e.g., "xxxxxxxxxxxxx"
+            serviceId: "service_307uo4r",
+            templateId: "template_zlzglpn",
+            publicKey: "8yNS7zwYWRbgGGzxG"
         };
         emailjs.init(EMAILJS_CONFIG.publicKey);
 
@@ -599,22 +599,51 @@
         ];
 
         // ========== TRANSLATIONS ==========
-        const translations = { /* same as previous final version – omitted for brevity but must be included */
-            en: { auth_prompt: "Please sign up or log in to continue", signup: "Sign Up", login: "Log In", forgot_password: "Forgot Password?",
-                  not_connected: "Not connected", connect_wallet: "🔌 Connect Wallet", logout: "🚪 Logout",
-                  connected_address: "Connected Address", ece_balance: "ECE Balance", bnb_balance: "BNB Balance", refresh: "🔄 Refresh",
-                  admin_panel: "👑 Founder's Admin", mint: "🔨 Mint", set_pair: "🔗 Set Pair", withdraw_fees: "💰 Withdraw Fees", broadcast: "📢 Broadcast",
-                  tab_dashboard: "📊 Dashboard", tab_staking: "🔒 Staking", tab_airdrop: "🪂 Airdrop", tab_transactions: "📋 Transactions", tab_contract: "📜 Contract", tab_loans: "💸 Loans", tab_swap: "🔄 Buy/Sell",
-                  price: "ECE Price", market_cap: "Market Cap", volume: "24h Volume", liquidity: "Liquidity", price_chart: "Live Price Chart",
-                  staking_pool: "🔒 Staking Pool", your_staked: "Your Staked", total_staked: "Total Staked", apr: "APR", stake: "Stake", unstake: "Unstake", claim: "Claim",
-                  airdrop_manager: "🪂 Airdrop Manager", send_airdrop: "Send Airdrop", upload_csv: "Upload CSV",
-                  recent_transactions: "📋 Recent Transactions", contract_interface: "📜 Contract Interaction", read_functions: "Read Functions", write_functions: "Write Functions", transfer: "transfer()", approve: "approve()",
-                  loans: "💸 Loan Requests", apply_loan: "Apply for a Loan", loan_info: "Request crypto assets. Admin will review and approve.", upload_doc: "Upload Document (simulated – just a text note)", submit_application: "Submit Application", loan_history: "Your Loan History", pending_approvals: "📋 Pending Loan Approvals (Admin)",
-                  buy_sell: "🔄 Buy / Sell ECE", swap_info: "Swap directly on PancakeSwap or use the embedded widget below.", buy_ece: "Buy ECE with BNB", sell_ece: "Sell ECE for BNB", swap_widget: "Swap Widget (PancakeSwap)",
-                  tagline: "ECE · Complete DeFi Ecosystem", reset_instruction: "Enter your email to reset your password", reset_success: "Password updated! You can now log in with the new password.", reset_not_found: "Email not found. Please sign up first." },
-            fr: { /* similar mapping */ },
-            es: { /* similar mapping */ }
+        const translations = {
+            en: {
+                auth_prompt: "Please sign up or log in to continue", signup: "Sign Up", login: "Log In", forgot_password: "Forgot Password?",
+                not_connected: "Not connected", connect_wallet: "🔌 Connect Wallet", logout: "🚪 Logout",
+                connected_address: "Connected Address", ece_balance: "ECE Balance", bnb_balance: "BNB Balance", refresh: "🔄 Refresh",
+                admin_panel: "👑 Founder's Admin", mint: "🔨 Mint", set_pair: "🔗 Set Pair", withdraw_fees: "💰 Withdraw Fees", broadcast: "📢 Broadcast",
+                tab_dashboard: "📊 Dashboard", tab_staking: "🔒 Staking", tab_airdrop: "🪂 Airdrop", tab_transactions: "📋 Transactions", tab_contract: "📜 Contract", tab_loans: "💸 Loans", tab_swap: "🔄 Buy/Sell",
+                price: "ECE Price", market_cap: "Market Cap", volume: "24h Volume", liquidity: "Liquidity", price_chart: "Live Price Chart",
+                staking_pool: "🔒 Staking Pool", your_staked: "Your Staked", total_staked: "Total Staked", apr: "APR", stake: "Stake", unstake: "Unstake", claim: "Claim",
+                airdrop_manager: "🪂 Airdrop Manager", send_airdrop: "Send Airdrop", upload_csv: "Upload CSV",
+                recent_transactions: "📋 Recent Transactions", contract_interface: "📜 Contract Interaction", read_functions: "Read Functions", write_functions: "Write Functions", transfer: "transfer()", approve: "approve()",
+                loans: "💸 Loan Requests", apply_loan: "Apply for a Loan", loan_info: "Request crypto assets. Admin will review and approve.", upload_doc: "Upload Document (simulated – just a text note)", submit_application: "Submit Application", loan_history: "Your Loan History", pending_approvals: "📋 Pending Loan Approvals (Admin)",
+                buy_sell: "🔄 Buy / Sell ECE", swap_info: "Swap directly on PancakeSwap or use the embedded widget below.", buy_ece: "Buy ECE with BNB", sell_ece: "Sell ECE for BNB", swap_widget: "Swap Widget (PancakeSwap)",
+                tagline: "ECE · Complete DeFi Ecosystem", reset_instruction: "Enter your email to reset your password", reset_success: "Password updated! You can now log in with the new password.", reset_not_found: "Email not found. Please sign up first."
+            },
+            fr: {
+                auth_prompt: "Veuillez vous inscrire ou vous connecter pour continuer", signup: "S'inscrire", login: "Se connecter", forgot_password: "Mot de passe oublié ?",
+                not_connected: "Non connecté", connect_wallet: "🔌 Connecter le portefeuille", logout: "🚪 Déconnexion",
+                connected_address: "Adresse connectée", ece_balance: "Solde ECE", bnb_balance: "Solde BNB", refresh: "🔄 Actualiser",
+                admin_panel: "👑 Admin Fondateur", mint: "🔨 Frapper", set_pair: "🔗 Définir la paire", withdraw_fees: "💰 Retirer les frais", broadcast: "📢 Diffuser",
+                tab_dashboard: "📊 Tableau de bord", tab_staking: "🔒 Staking", tab_airdrop: "🪂 Airdrop", tab_transactions: "📋 Transactions", tab_contract: "📜 Contrat", tab_loans: "💸 Prêts", tab_swap: "🔄 Acheter/Vendre",
+                price: "Prix ECE", market_cap: "Capitalisation", volume: "Volume 24h", liquidity: "Liquidité", price_chart: "Graphique des prix",
+                staking_pool: "🔒 Pool de staking", your_staked: "Votre mise", total_staked: "Total misé", apr: "TAEG", stake: "Miser", unstake: "Retirer", claim: "Réclamer",
+                airdrop_manager: "🪂 Gestionnaire d'airdrop", send_airdrop: "Envoyer l'airdrop", upload_csv: "Importer CSV",
+                recent_transactions: "📋 Transactions récentes", contract_interface: "📜 Interaction avec le contrat", read_functions: "Fonctions de lecture", write_functions: "Fonctions d'écriture", transfer: "transfer()", approve: "approuver()",
+                loans: "💸 Demandes de prêt", apply_loan: "Demander un prêt", loan_info: "Demandez des actifs crypto. L'administrateur examinera et approuvera.", upload_doc: "Télécharger un document (simulé)", submit_application: "Soumettre la demande", loan_history: "Votre historique de prêts", pending_approvals: "📋 Approbations de prêts en attente (Admin)",
+                buy_sell: "🔄 Acheter / Vendre ECE", swap_info: "Échangez directement sur PancakeSwap ou utilisez le widget intégré ci-dessous.", buy_ece: "Acheter ECE avec BNB", sell_ece: "Vendre ECE pour BNB", swap_widget: "Widget d'échange (PancakeSwap)",
+                tagline: "ECE · Écosystème DeFi complet", reset_instruction: "Entrez votre email pour réinitialiser votre mot de passe", reset_success: "Mot de passe mis à jour ! Vous pouvez maintenant vous connecter avec le nouveau mot de passe.", reset_not_found: "Email introuvable. Veuillez vous inscrire d'abord."
+            },
+            es: {
+                auth_prompt: "Regístrese o inicie sesión para continuar", signup: "Registrarse", login: "Iniciar sesión", forgot_password: "¿Olvidó su contraseña?",
+                not_connected: "No conectado", connect_wallet: "🔌 Conectar billetera", logout: "🚪 Cerrar sesión",
+                connected_address: "Dirección conectada", ece_balance: "Saldo ECE", bnb_balance: "Saldo BNB", refresh: "🔄 Actualizar",
+                admin_panel: "👑 Administrador Fundador", mint: "🔨 Acuñar", set_pair: "🔗 Establecer par", withdraw_fees: "💰 Retirar comisiones", broadcast: "📢 Anunciar",
+                tab_dashboard: "📊 Tablero", tab_staking: "🔒 Staking", tab_airdrop: "🪂 Airdrop", tab_transactions: "📋 Transacciones", tab_contract: "📜 Contrato", tab_loans: "💸 Préstamos", tab_swap: "🔄 Comprar/Vender",
+                price: "Precio ECE", market_cap: "Capitalización", volume: "Volumen 24h", liquidity: "Liquidez", price_chart: "Gráfico de precios",
+                staking_pool: "🔒 Pool de staking", your_staked: "Su apuesta", total_staked: "Total apostado", apr: "APR", stake: "Apostar", unstake: "Retirar apuesta", claim: "Reclamar",
+                airdrop_manager: "🪂 Administrador de airdrop", send_airdrop: "Enviar airdrop", upload_csv: "Subir CSV",
+                recent_transactions: "📋 Transacciones recientes", contract_interface: "📜 Interacción con el contrato", read_functions: "Funciones de lectura", write_functions: "Funciones de escritura", transfer: "transfer()", approve: "aprobar()",
+                loans: "💸 Solicitudes de préstamo", apply_loan: "Solicitar un préstamo", loan_info: "Solicite activos cripto. El administrador revisará y aprobará.", upload_doc: "Subir documento (simulado)", submit_application: "Enviar solicitud", loan_history: "Su historial de préstamos", pending_approvals: "📋 Aprobaciones de préstamos pendientes (Admin)",
+                buy_sell: "🔄 Comprar / Vender ECE", swap_info: "Intercambie directamente en PancakeSwap o use el widget integrado a continuación.", buy_ece: "Comprar ECE con BNB", sell_ece: "Vender ECE por BNB", swap_widget: "Widget de intercambio (PancakeSwap)",
+                tagline: "ECE · Ecosistema DeFi completo", reset_instruction: "Ingrese su correo electrónico para restablecer su contraseña", reset_success: "¡Contraseña actualizada! Ahora puede iniciar sesión con la nueva contraseña.", reset_not_found: "Correo no encontrado. Regístrese primero."
+            }
         };
+
         let currentLang = localStorage.getItem('efikLang') || (navigator.language.split('-')[0] === 'fr' ? 'fr' : navigator.language.split('-')[0] === 'es' ? 'es' : 'en');
         function setLanguage(lang) {
             currentLang = lang;
@@ -1105,4 +1134,4 @@
         loadLoans();
     </script>
 </body>
-    </html>
+</html>

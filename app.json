@@ -1,0 +1,8 @@
+{
+  "expo": {
+    "name": "EfikCoin Wallet",
+    "slug": "efikcoin-wallet",
+    "projectId": "your-project-id-here",
+    ...
+  }
+}

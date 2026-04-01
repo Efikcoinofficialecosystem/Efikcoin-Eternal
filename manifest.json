@@ -1,6 +1,7 @@
 {
-  "name": "EfikCoin Wallet",
+  "name": "EfikCoin Eternal Wallet",
   "short_name": "ECE Wallet",
+  "description": "Decentralized finance ecosystem with staking, airdrops, loans, and live blockchain tools. Manage your ECE tokens and interact with the EfikCoin platform.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
@@ -9,7 +10,13 @@
     {
       "src": "https://raw.githubusercontent.com/Efikcoinofficialecosystem/efikcoin-eternal/main/1772019882787.png",
       "sizes": "256x256",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "orientation": "portrait",
+  "categories": ["finance", "cryptocurrency", "defi"]
 }

@@ -1103,14 +1103,11 @@
             if (web3Modal.cachedProvider) connectWallet();
         }
         loadLoans();
-    </script>
-</body>
     <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log('SW registered'))
-      .catch(err => console.error('SW failed:', err));
+    navigator.serviceWorker.register('/sw.js').catch(console.error);
   }
-    </script>
+</script>
+</body>
     <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3d5c4efd4aae473a86096f9d4b9d800a"}'></script><!-- End Cloudflare Web Analytics -->
 </html>

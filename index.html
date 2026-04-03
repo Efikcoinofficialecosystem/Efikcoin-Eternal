@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>EfikCoin Eternal – Complete DeFi Ecosystem</title>
+    <link rel="manifest" href="/manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.8/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        body { background: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(20,20,20,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,215,0,0.15); border-radius: 1.5rem; }
+        .btn { transition: all 0.2s; cursor: pointer; font-weight: 600; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(255,215,0,0.3); }
+        .tab-active { border-bottom: 2px solid #f59e0b; color: #f59e0b; }
+        .owner-only { display: none; }
+        .error { color: #f87171; }
+        .success { color: #4ade80; }
+        .hidden { display: none; }
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            border-top: 3px solid #f59e0b;
+            width: 24px;
+            height: 24px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .btn-loading { opacity: 0.6; pointer-events: none; }
+        .loan-card { background: #1a1a1a; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid #f59e0b; }
+        .ticker {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin: 0 auto 1rem;
+        }
+        .lang-selector {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            padding: 0.5rem;
+            border-radius: 2rem;
+            backdrop-filter: blur(8px);
+            border: 1px solid #f59e0b;
+        }
+        .lang-selector select { background: transparent; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .forgot-password { text-align: right; font-size: 0.8rem; cursor: pointer; color: #f59e0b; margin-top: 0.25rem; }
+        .social-icon { transition: transform 0.2s; }
+        .social-icon:hover { transform: scale(1.1); }
+        .fa-brands, .fa-solid { margin-right: 4px; }
+        .otp-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .otp-modal { background: #1a1a1a; border-radius: 1rem; padding: 2rem; max-width: 400px; width: 90%; text-align: center; }
+        .import-wallet-btn { background: #2d3748; color: #f59e0b; border: 1px solid #f59e0b; }
+    </style>
+</head>
+<body class="p-4 md:p-6 min-h-screen flex items-center justify-center">
+    <div class="max-w-6xl w-full" id="app">
+        <!-- Language Selector -->
+        <div class="lang-selector">
+            <select id="languageSelect">
+                <option value="en">🇬🇧 English</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="es">🇪🇸 Español</option>
+            </select>
+        </div>
+
+        <!-- Live Ticker -->
+        <div class="text-center mb-2">
+            <div class="ticker" id="ticker">📈 ECE Price: -- | 🌐 BSC Network: Active</div>
+        </div>
+
+        <!-- Registration / Login Screen -->
+        <div id="authScreen" class="glass-card p-8 max-w-md mx-auto">
+            <div class="text-center mb-6">
+                <img src="https://raw.githubusercontent.com/Efikcoinofficialecosystem/efikcoin-eternal/main/1772019882787.png" alt="ECE Logo" class="w-20 h-20 mx-auto rounded-full">
+                <h1 class="text-3xl font-bold text-amber-400 mt-4">EfikCoin Eternal</h1>
+                <p class="text-gray-400" data-i18n="auth_prompt">Please sign up or log in to continue</p>
+            </div>
+            <div class="space-y-4">
+                <input type="email" id="authEmail" placeholder="Email" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white">
+                <input type="password" id="authPassword" placeholder="Password" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white">
+                <div class="flex gap-3">
+                    <button id="signupBtn" class="btn bg-amber-500 hover:bg-amber-600 text-black font-bold py-3 px-6 rounded-lg flex-1" data-i18n="signup">Sign Up</button>
+                    <button id="loginBtn" class="btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg flex-1" data-i18n="login">Log In</button>
+                </div>
+                <div class="forgot-password" id="forgotPwdBtn" data-i18n="forgot_password">Forgot Password?</div>
+                <div id="authMessage" class="text-sm text-center"></div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="dashboardScreen" class="hidden space-y-6">
+            <!-- Header -->
+            <div class="text-center">
+                <img src="https://raw.githubusercontent.com/Efikcoinofficialecosystem/efikcoin-eternal/main/1772019882787.png" alt="ECE Logo" class="w-16 h-16 mx-auto rounded-full">
+                <h1 class="text-4xl font-extrabold bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-clip-text text-transparent">
+                    EfikCoin Eternal
+                </h1>
+                <p class="text-gray-400 mt-2" data-i18n="tagline">ECE · Complete DeFi Ecosystem</p>
+            </div>
+
+            <!-- Connection Bar with Import Wallet -->
+            <div class="glass-card p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div id="connectionIndicator" class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <span id="connectionStatus" class="font-medium text-gray-300" data-i18n="not_connected">Not connected</span>
+                    <span id="networkStatus" class="text-sm text-gray-500"></span>
+                </div>
+                <div class="flex gap-3 flex-wrap">
+                    <button id="connectBtn" class="btn bg-amber-500 hover:bg-amber-600 text-black px-6 py-2 rounded-full text-sm font-bold shadow-lg" data-i18n="connect_wallet">🔌 Connect Wallet</button>
+                    <button id="importWalletBtn" class="btn import-wallet-btn hover:bg-gray-700 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">🔑 Import Wallet</button>
+                    <button id="logoutBtn" class="btn bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-full text-sm shadow-lg" data-i18n="logout">🚪 Logout</button>
+                </div>
+            </div>
+
+            <!-- User Info -->
+            <div id="userInfo" class="glass-card p-4 hidden">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <p class="text-gray-400 text-sm" data-i18n="connected_address">Connected Address</p>
+                        <p id="userAddress" class="font-mono text-sm break-all bg-black/30 p-2 rounded-lg"></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-gray-400 text-sm" data-i18n="ece_balance">ECE Balance</p>
+                        <p id="userBalance" class="text-2xl font-bold text-amber-400">0</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-gray-400 text-sm" data-i18n="bnb_balance">BNB Balance</p>
+                        <p id="bnbBalance" class="text-2xl font-bold text-amber-400">0</p>
+                    </div>
+                    <button id="refreshBalance" class="btn bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-full text-sm" data-i18n="refresh">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <!-- Admin Panel -->
+            <div id="adminPanel" class="glass-card p-5 border-2 border-amber-500/50 hidden">
+                <h2 class="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-2" data-i18n="admin_panel">👑 Founder's Admin</h2>
+                <div class="grid md:grid-cols-4 gap-3">
+                    <button id="adminMint" class="btn bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg" data-i18n="mint">🔨 Mint</button>
+                    <button id="adminSetPair" class="btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg" data-i18n="set_pair">🔗 Set Pair</button>
+                    <button id="adminWithdrawFees" class="btn bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg" data-i18n="withdraw_fees">💰 Withdraw Fees</button>
+                    <button id="adminBroadcast" class="btn bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-lg" data-i18n="broadcast">📢 Broadcast</button>
+                </div>
+                <div class="mt-4">
+                    <textarea id="broadcastMessage" rows="2" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white" placeholder="Announcement..."></textarea>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="flex flex-wrap justify-center gap-2 border-b border-gray-700 pb-2">
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="dashboard" data-i18n="tab_dashboard">📊 Dashboard</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="staking" data-i18n="tab_staking">🔒 Staking</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="airdrop" data-i18n="tab_airdrop">🪂 Airdrop</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="transactions" data-i18n="tab_transactions">📋 Transactions</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="contract" data-i18n="tab_contract">📜 Contract</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="loans" data-i18n="tab_loans">💸 Loans</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-300 hover:text-amber-400 transition" data-tab="swap" data-i18n="tab_swap">🔄 Buy/Sell</button>
+            </div>
+
+            <!-- Tab Contents (Dashboard, Staking, Airdrop, Transactions, Contract, Loans, Swap) -->
+            <div id="tabContent">
+                <!-- Dashboard Tab -->
+                <div id="dashboard-tab" class="tab-pane">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="glass-card p-4 text-center"><p class="text-gray-400 text-sm" data-i18n="price">ECE Price</p><p id="ecePrice" class="text-xl font-bold text-amber-400">--</p></div>
+                        <div class="glass-card p-4 text-center"><p class="text-gray-400 text-sm" data-i18n="market_cap">Market Cap</p><p id="marketCap" class="text-xl font-bold">--</p></div>
+                        <div class="glass-card p-4 text-center"><p class="text-gray-400 text-sm" data-i18n="volume">24h Volume</p><p id="volume" class="text-xl font-bold">--</p></div>
+                        <div class="glass-card p-4 text-center"><p class="text-gray-400 text-sm" data-i18n="liquidity">Liquidity</p><p id="liquidity" class="text-xl font-bold">--</p></div>
+                    </div>
+                    <div class="glass-card p-5"><h3 class="text-xl font-bold mb-2" data-i18n="price_chart">Live Price Chart</h3>
+                        <iframe src="https://dexscreener.com/bsc/0x9f8c29e496ecb6c39c221458f211234dfcb233e0?embed=1" width="100%" height="400" style="border: none; border-radius: 1rem;"></iframe>
+                    </div>
+                </div>
+
+                <!-- Staking Tab -->
+                <div id="staking-tab" class="tab-pane hidden">
+                    <div class="glass-card p-5">
+                        <h2 class="text-2xl font-bold mb-4" data-i18n="staking_pool">🔒 Staking Pool</h2>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div><p class="text-gray-400"><span data-i18n="your_staked">Your Staked</span>: <span id="userStaked" class="text-white font-bold">0 ECE</span></p>
+                                <p class="text-gray-400"><span data-i18n="total_staked">Total Staked</span>: <span id="totalStaked" class="text-white font-bold">0 ECE</span></p>
+                                <p class="text-gray-400"><span data-i18n="apr">APR</span>: <span class="text-amber-400">125% – 750%</span></p>
+                            </div>
+                            <div>
+                                <select id="lockPeriod" class="bg-gray-800 border border-gray-600 rounded px-3 py-2 w-full mb-2">
+                                    <option value="30">30 days – 125% APR</option><option value="60">60 days – 180% APR</option>
+                                    <option value="90">90 days – 250% APR</option><option value="180">180 days – 400% APR</option>
+                                    <option value="365">365 days – 750% APR</option>
+                                </select>
+                                <input type="number" id="stakeAmount" placeholder="Amount in ECE" class="bg-gray-800 border border-gray-600 rounded px-3 py-2 w-full mb-2">
+                                <div class="flex gap-2">
+                                    <button id="stakeBtn" class="btn bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex-1" data-i18n="stake">Stake</button>
+                                    <button id="unstakeBtn" class="btn bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex-1" data-i18n="unstake">Unstake</button>
+                                    <button id="claimRewardsBtn" class="btn bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex-1" data-i18n="claim">Claim</button>
+                                </div>
+                                <div id="stakingMessage" class="text-sm mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Airdrop Tab (owner only) -->
+                <div id="airdrop-tab" class="tab-pane hidden owner-only">
+                    <div class="glass-card p-5">
+                        <h2 class="text-2xl font-bold mb-4" data-i18n="airdrop_manager">🪂 Airdrop Manager</h2>
+                        <textarea id="airdropList" rows="5" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white font-mono" placeholder="0x123...,1000&#10;0x456...,2000"></textarea>
+                        <div class="flex gap-3 mt-4">
+                            <button id="airdropBtn" class="btn bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg" data-i18n="send_airdrop">Send Airdrop</button>
+                            <label class="btn bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg cursor-pointer">📁 <span data-i18n="upload_csv">Upload CSV</span><input type="file" id="airdropFile" accept=".csv" class="hidden"></label>
+                        </div>
+                        <div id="airdropMessage" class="text-sm mt-2"></div>
+                    </div>
+                </div>
+
+                <!-- Transactions Tab -->
+                <div id="transactions-tab" class="tab-pane hidden">
+                    <div class="glass-card p-5">
+                        <h2 class="text-2xl font-bold mb-4" data-i18n="recent_transactions">📋 Recent Transactions</h2>
+                        <input type="text" id="txSearch" placeholder="Filter by address" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 w-full mb-3">
+                        <div id="txList" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                        <div id="txMessage" class="text-sm mt-2"></div>
+                    </div>
+                </div>
+
+                <!-- Contract Tab -->
+                <div id="contract-tab" class="tab-pane hidden">
+                    <div class="glass-card p-5">
+                        <h2 class="text-2xl font-bold mb-4" data-i18n="contract_interface">📜 Contract Interaction</h2>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <h3 class="font-semibold" data-i18n="read_functions">Read Functions</h3>
+                                <button class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded mt-2 text-sm w-full" onclick="callRead('name')">name()</button>
+                                <button class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded mt-2 text-sm w-full" onclick="callRead('symbol')">symbol()</button>
+                                <button class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded mt-2 text-sm w-full" onclick="callRead('totalSupply')">totalSupply()</button>
+                                <button class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded mt-2 text-sm w-full" onclick="callRead('decimals')">decimals()</button>
+                                <button class="btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded mt-2 text-sm w-full" onclick="callRead('owner')">owner()</button>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold" data-i18n="write_functions">Write Functions</h3>
+                                <button id="writeTransfer" class="btn bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded mt-2 text-sm w-full" data-i18n="transfer">transfer()</button>
+                                <button id="writeApprove" class="btn bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded mt-2 text-sm w-full" data-i18n="approve">approve()</button>
+                            </div>
+                        </div>
+                        <div id="contractMessage" class="text-sm mt-2"></div>
+                    </div>
+                </div>
+
+                <!-- Loans Tab -->
+                <div id="loans-tab" class="tab-pane hidden">
+                    <div class="glass-card p-5">
+                        <h2 class="text-2xl font-bold mb-4" data-i18n="loans">💸 Loan Requests</h2>
+                        <div class="bg-gray-800 p-4 rounded-xl mb-6">
+                            <h3 class="text-xl font-semibold text-amber-400 mb-3" data-i18n="apply_loan">Apply for a Loan</h3>
+                            <p class="text-sm text-gray-400 mb-3" data-i18n="loan_info">Request crypto assets. Admin will review and approve.</p>
+                            <div class="grid md:grid-cols-2 gap-3 mb-3">
+   
